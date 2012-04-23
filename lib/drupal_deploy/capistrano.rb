@@ -69,6 +69,12 @@ module DrupalDeploy
                             "Note there may be only one root value for a single deploy"
               end
             end
+            if site["databases"]
+              dbs = DrupalDeploy::Configuration.normalize_value site["databases"]
+              if !variables[:databases]
+                set :databases, dbs
+              end
+            end
           end
         end
       end
