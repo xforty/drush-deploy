@@ -133,6 +133,38 @@ module DrupalDeploy
       run "#{drush_bin} php-script /tmp/update_settings.php"
     end
 
+    def copy_database(conf,from,to)
+      conf = conf.merge(:database => from)
+      put (db_tables_query % conf), '/tmp/tables_query.sql'
+      tables = capture(%Q{cd #{current_release} && #{drush_bin} sql-cli < /tmp/tables_query.sql})
+      tables = tables.split(/\n/)
+
+      sql = <<-END
+        CREATE DATABASE #{to};
+      END
+
+      tables.each do |table|
+        sql += <<-END 
+          CREATE TABLE #{to}.#{table} LIKE #{from}.#{table};
+          INSERT INTO #{to}.#{table} SELECT * FROM #{from}.#{table};
+        END
+      end
+      put sql, '/tmp/backup_database.sql'
+      run %Q{cd '#{current_release}' && #{drush_bin} sql-cli < /tmp/backup_database.sql}, :once => true
+    end
+
+    def rename_database(from,to)
+      sql = "ALTER TABLE #{from} RENAME TO #{to};"
+      put sql, '/tmp/rename_database.sql'
+      run %Q{cd '#{current_release}' && #{drush_bin} sql-cli < /tmp/rename_database.sql}
+    end
+
+    def drop_database(db)
+      sql = "DROP DATABASE #{db};"
+      put sql, '/tmp/drop_database.sql'
+      run %Q{cd '#{current_release}' && #{drush_bin} sql-cli < /tmp/drop_database.sql}
+    end
+
     # Should split these out
     def deep_update(h1,h2)
       h1.inject({}) do |h,(k,v)|
@@ -158,6 +190,8 @@ module DrupalDeploy
       end
     end
 
-
+    def to_db_url(db)
+      "#{db[:driver]}://#{db[:username]}:#{db[:password]}@#{db[:host]}:#{db[:port]}/#{db[:database]}"
+    end
   end
 end
