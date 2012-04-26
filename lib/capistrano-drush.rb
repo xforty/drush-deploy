@@ -6,9 +6,17 @@ configuration = Capistrano::Configuration.instance(:must_exist)
 
 configuration.load do
   set :deploy_via, :copy
+  set :scm, :none
+  set :repository, "."
   _cset :drush_bin, "drush"
   _cset :make, nil
   _cset :makefile, 'distro.make'
+
+  set :drush, ENV['DRUSH'] if ENV['DRUSH']
+  set :scm, ENV['SCM'] if ENV['SCM']
+  set :repository, ENV['REPO'] if ENV['REPO']
+  set :target, ENV['TARGET'] if ENV['TARGET']
+  set :source, ENV['SOURCE'] if ENV['SOURCE']
 
   # --------------------------------------------
   # Calling our Methods
@@ -27,8 +35,8 @@ configuration.load do
     drush_cap.targets.each {|t| puts t}
   end
 
-  if ENV['TARGET']
-    drush_cap.load_target ENV['TARGET']
+  if exists? :target
+    drush_cap.load_target target
   end
 
   # --------------------------------------------
