@@ -1,45 +1,55 @@
-require 'yaml'
 require 'drupal_deploy/database'
 
 drupal_db = DrupalDeploy::Database.new(self)
 
-settings_attrs = %w(driver database username password host port prefix collation).map &:to_sym
+after "deploy", "db:drupal:update_settings"
+after "deploy", "db:version:create"
+before "deploy:rollback", "db:version:rollback"
 
-namespace :drupal do
-  namespace :db do
-    task :import, :roles => :db_access do
-      run "#{drush_bin}" 
+before "db:version:create", "db:drupal:configure"
+before "db:version:rollback", "db:drupal:configure"
+before "db:version:cleanup", "db:drupal:configure"
+
+if update_modules
+  after "deploy", "db:drupal:update"
+end
+after "deploy:cleanup", "db:version:cleanup"
+
+namespace :db do
+  namespace :drupal do
+    desc "Run update scripts for Drupal"
+    task :update, :roles => :web do
+      drupal_db.updatedb
     end
 
-    task :update, :roles => :db_access do
-    end
-
-
+    desc "Determine database settings"
     task :configure do
-      return if configured
-      drupal_db.configure
+      unless configured
+        drupal_db.configure
 
-      unless databases.nil? || databases.is_a?(Hash)
-        throw DrupalDeploy::Error.new "Invalid value for databases: #{databases.inspect}"
-      end
-
-      # Set some defaults
-      DrupalDeploy::Database.each_db(databases) do |db|
-        if db[:driver]
-          db[:driver] = db[:driver].to_sym
-        else
-          db[:driver] = db[:port] == database_ports[:pgsql] ? :pgsql : :mysql
+        unless databases.nil? || databases.is_a?(Hash)
+          throw DrupalDeploy::Error.new "Invalid value for databases: #{databases.inspect}"
         end
-        db[:host] ||= 'localhost'
-        db[:port] ||= database_ports[db[:driver]]
-        db[:prefix] ||= ''
-        db[:collation] ||= 'utf8_general_ci'
-      end
-      set :configured, true
 
-      logger.important "Using database settings #{databases.inspect}"
+        # Set some defaults
+        DrupalDeploy::Database.each_db(databases) do |db|
+          if db[:driver]
+            db[:driver] = db[:driver].to_sym
+          else
+            db[:driver] = db[:port] == database_ports[:pgsql] ? :pgsql : :mysql
+          end
+          db[:host] ||= 'localhost'
+          db[:port] ||= database_ports[db[:driver]]
+          db[:prefix] ||= ''
+          db[:collation] ||= 'utf8_general_ci'
+        end
+        set :configured, true
+
+        logger.important "Using database settings #{databases.inspect}"
+      end
     end
 
+    desc "Update settings.php with database settings"
     task :update_settings do
       configure unless configured
       settings = databases.inject({}) do |h,(k,site)|
@@ -53,13 +63,12 @@ namespace :drupal do
     end
   end
 
-  before "drupal:version:create", "drupal:db:configure"
-  before "drupal:version:rollback", "drupal:db:configure"
   namespace :version do
-    task :create, :roles => :db_access do
-      unless releases.empty?
+    desc "Create a versioned backup of the database"
+    task :create, :roles => :web do
+      if releases.size > 1
         current = drupal_db.config[:database]
-        backup = "#{current}_#{releases.last}"
+        backup = "#{current}_#{releases[-2]}"
         unless drupal_db.db_exists? backup
           on_rollback do
             drupal_db.drop_database backup
@@ -69,7 +78,8 @@ namespace :drupal do
       end
     end
 
-    task :rollback, :roles => :db_access do
+    desc "Rollback to a previous version of the database"
+    task :rollback, :roles => :web do
       unless releases.size > 1
         throw DrupalDeploy::Error.new "No previous versions to rollback to"
       end
@@ -81,6 +91,15 @@ namespace :drupal do
         drupal_db.rename_database(current,backup)
         drupal_db.rename_database(source,current)
         drupal_db.drop_database(backup)
+      end
+    end
+
+    desc "Cleanup old versions of the database"
+    task :cleanup, :roles => :web do
+      # Subtract one because the latest release won't be counted
+      count = fetch(:keep_releases, 5).to_i - 1
+      drupal_db.db_versions.drop(count).each do |db|
+        drupal_db.drop_database(db)
       end
     end
   end

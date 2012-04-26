@@ -133,6 +133,10 @@ module DrupalDeploy
       run "cd '#{latest_release}' && #{drush_bin} php-script /tmp/update_settings.php"
     end
 
+    def updatedb
+      run "cd '#{latest_release}' && #{drush_bin} updatedb", :once => true
+    end
+
     def config(*args)
       options = (args.size>0 && args.last.is_a?(Hash)) ? args.pop : {}
       site_name = args[0] || :default
@@ -149,12 +153,20 @@ module DrupalDeploy
       url = options[:config] ? DrupalDeploy::Database.url(options[:config]) : nil
       tmp = capture('mktemp').strip
       put(sql,tmp)
-      cmd = %Q{cd '#{current_release}' && #{drush_bin} sql-cli #{url ? "--db-url='#{url}'" : ''} < '#{tmp}'}
+      cmd = %Q{cd '#{current_path}' && #{drush_bin} sql-cli #{url ? "--db-url='#{url}'" : ''} < '#{tmp}'}
       if options[:capture]
         capture(cmd)
       else
         run cmd, :once => true
       end
+    end
+
+    def db_versions
+      conf = config(:admin => true)
+      logger.info "Getting list of databases versions"
+      sql = %q{SELECT SCHEMA_NAME FROM information_schema.SCHEMATA
+               WHERE SCHEMA_NAME REGEXP '%{database}_[0-9]+';} % conf
+      remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1..-1].sort.reverse
     end
 
     def db_exists?(db = nil)
@@ -163,13 +175,16 @@ module DrupalDeploy
       logger.info "Checking existence of #{conf[:database]}"
       sql = %q{SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '%{database}';} % conf
       conf[:database] = 'information_schema'
-      remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1]
+      remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1].to_i != 0
     end
 
     def db_tables(db = nil)
       conf = config(:admin => true)
       conf[:database] = db if db
       logger.info "Fetching table list of #{conf[:database]}"
+      db_tables_query = %q{SELECT table_name FROM information_schema.tables
+                           WHERE table_schema = '%{database}'
+                             AND table_type = 'BASE TABLE'};
       sql = db_tables_query % conf
       conf[:database] = 'information_schema'
       remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1..-1] || []

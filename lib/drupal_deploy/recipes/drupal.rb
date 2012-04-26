@@ -3,9 +3,8 @@ require 'drupal_deploy/database'
 before "deploy", "drupal:setup_build"
 before "deploy", "drupal:check_permissions"
 after "deploy:symlink", "drupal:symlink"
-after "deploy", "drupal:setup"
 after "deploy", "drupal:clearcache"
-before "drupal:install_profile", "drupal:db:configure"
+before "drupal:install_profile", "db:drupal:configure"
 
 namespace :drupal do
   desc "Symlink shared directories"
@@ -21,13 +20,6 @@ namespace :drupal do
   desc "Protect system files"
   task :protect, :roles => :web do
     run "chmod 644 #{latest_release}/sites/default/settings.php"
-  end
-
-  desc "Run update scripts for Drupal"
-  task :update, :roles => :web do
-    if update_modules
-
-    end
   end
 
   desc "Install profile from command line"
