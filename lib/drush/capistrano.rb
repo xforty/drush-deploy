@@ -18,7 +18,6 @@ module Drush
         @cap_config.set :drush, @drush_config.drush
       end
       @cap_config.logger.info "Using drush at \"#{@drush_config.drush}\""
-      @cap_config.logger.info "Loaded sites: #{@drush_config.aliases.keys.join(", ")}"
     end
 
     # Take a sitename and setup it's settings as the target host
@@ -60,7 +59,7 @@ module Drush
               if !defined?(deploy_to)
                 set :deploy_to, root
               elsif deploy_to != root
-                logger.warn "Ignoring \"root\" option for site #{sitename} because deploy_to has already been set.\n"\
+                logger.important "Ignoring \"root\" option for site #{sitename} because deploy_to has already been set.\n"\
                             "Note there may be only one root value for a single deploy"
               end
             end
