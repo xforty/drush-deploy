@@ -6,6 +6,7 @@ module Capistrano
     alias_method :execute_without_drush, :execute!
     def execute_with_drush
       options[:recipes] << File.expand_path('../../lib/capistrano-drush.cap', __FILE__)
+      options[:actions] << 'deploy' if options[:actions].empty?
       execute_without_drush
     end
     alias_method :execute!, :execute_with_drush
