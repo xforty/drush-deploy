@@ -71,26 +71,26 @@ configuration.load do
   # --------------------------------------------
   namespace :drupal do
     desc "Symlink shared directories"
-    task :symlink, :roles => :web, :except => { :no_release => true } do
+    task :symlink, :roles => :web do
       run "ln -nfs #{shared_path}/default/files #{latest_release}/sites/default/files"
     end
    
     desc "Clear all Drupal cache"
-    task :clearcache, :roles => :web, :except => { :no_release => true } do
+    task :clearcache, :roles => :web do
       run "#{drush_bin} -r #{current_path} cache-clear all"
     end
   
     desc "Protect system files"
-    task :protect, :roles => :web, :except => { :no_release => true } do
+    task :protect, :roles => :web do
       run "chmod 644 #{latest_release}/sites/default/settings.php"
     end
 
     desc "Run install or update scripts for Drupal"
-    task :setup, :roles => :web, :except => { :no_release => true } do
+    task :setup, :roles => :web do
       1
     end
 
-    task :install_profile, :roles => :web, :except => { :no_release => true } do
+    task :install_profile, :roles => :web do
         script= <<-END
           PROFILES="$(
             for p in `ls profiles`
@@ -103,7 +103,7 @@ configuration.load do
         END
     end
 
-    task :setup_build, :roles => :web, :except => { :no_release => true } do
+    task :setup_build, :roles => :web do
       if ENV['MAKE']
         set :make, ENV['MAKE'] =~ /^(0|no?)$/i
       end
@@ -122,7 +122,7 @@ configuration.load do
     end
 
     desc "Check and fix if any permissions are set incorrectly."
-    task :check_permissions do
+    task :check_permissions, :roles => :web do
       if ! defined? www_user or www_user.nil?
         user = capture(%q{ps -eo user,comm,pid,ppid | awk '$2 ~ /^apache.*|^httpd$/ && $1 != U && $3 != P {P=$4; U=$1} END { print U }'}).strip
         if user
