@@ -36,7 +36,7 @@ configuration.load do
   end
 
   if exists? :target
-    drush_cap.load_target target
+    target.split(/ *, */).each {|t| drush_cap.load_target t }
   end
 
   # --------------------------------------------
