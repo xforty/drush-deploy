@@ -47,7 +47,7 @@ module DrupalDeploy
           throw Error.new "Unknown file type: #{path}"
         end
       end
-      deep_merge(@seen_paths[path],databases)
+      DrupalDeploy::Database.deep_merge(@seen_paths[path],databases)
     end
 
     def load_php_path(path)
@@ -130,43 +130,91 @@ module DrupalDeploy
         }
       END
       put script, '/tmp/update_settings.php'
-      run "#{drush_bin} php-script /tmp/update_settings.php"
+      run "cd '#{latest_release}' && #{drush_bin} php-script /tmp/update_settings.php"
     end
 
-    def copy_database(conf,from,to)
-      conf = conf.merge(:database => from)
-      put (db_tables_query % conf), '/tmp/tables_query.sql'
-      tables = capture(%Q{cd #{current_release} && #{drush_bin} sql-cli < /tmp/tables_query.sql})
-      tables = tables.split(/\n/)
+    def config(*args)
+      options = (args.size>0 && args.last.is_a?(Hash)) ? args.pop : {}
+      site_name = args[0] || :default
+      db_name = args[1] || :default
+      conf = databases[site_name][db_name].dup
+      if options[:admin] && conf[:admin_username]
+        conf[:username] = conf[:admin_username]
+        conf[:password] = conf[:admin_password]
+      end
+      conf.merge options
+    end
 
-      sql = <<-END
-        CREATE DATABASE #{to};
-      END
+    def remote_sql(sql,options={})
+      url = options[:config] ? DrupalDeploy::Database.url(options[:config]) : nil
+      tmp = capture('mktemp').strip
+      put(sql,tmp)
+      cmd = %Q{cd '#{current_release}' && #{drush_bin} sql-cli #{url ? "--db-url='#{url}'" : ''} < '#{tmp}'}
+      if options[:capture]
+        capture(cmd)
+      else
+        run cmd, :once => true
+      end
+    end
 
+    def db_exists?(db = nil)
+      conf = config(:admin => true)
+      conf[:database] = db if db
+      logger.info "Checking existence of #{conf[:database]}"
+      sql = %q{SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '%{database}';} % conf
+      conf[:database] = 'information_schema'
+      remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1]
+    end
+
+    def db_tables(db = nil)
+      conf = config(:admin => true)
+      conf[:database] = db if db
+      logger.info "Fetching table list of #{conf[:database]}"
+      sql = db_tables_query % conf
+      conf[:database] = 'information_schema'
+      remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1..-1] || []
+    end
+
+    def copy_database(from,to)
+      logger.info "Copying database #{from} to #{to}"
+      tables = db_tables
+      conf = config(:database => from, :admin => true)
+
+      remote_sql("CREATE DATABASE #{to};", :config => conf)
+      sql = ''
       tables.each do |table|
         sql += <<-END 
           CREATE TABLE #{to}.#{table} LIKE #{from}.#{table};
           INSERT INTO #{to}.#{table} SELECT * FROM #{from}.#{table};
         END
       end
-      put sql, '/tmp/backup_database.sql'
-      run %Q{cd '#{current_release}' && #{drush_bin} sql-cli < /tmp/backup_database.sql}, :once => true
+      remote_sql(sql, :config => conf)
     end
 
     def rename_database(from,to)
-      sql = "ALTER TABLE #{from} RENAME TO #{to};"
-      put sql, '/tmp/rename_database.sql'
-      run %Q{cd '#{current_release}' && #{drush_bin} sql-cli < /tmp/rename_database.sql}
+      logger.info "Renaming database #{from} to #{to}"
+      conf = config(:database => from, :admin => true)
+      sql = ''
+      if conf[:driver] == :mysql
+        sql += "CREATE DATABASE `#{to}`;"
+        db_tables(from).each do |table|
+          sql += "RENAME TABLE `#{from}`.`#{table}` TO `#{to}`.`#{table}`;"
+        end
+        sql += "DROP DATABASE `#{from}`;"
+      else
+        sql += "ALTER TABLE #{from} RENAME TO #{to};"
+      end
+      remote_sql(sql, :config => conf)
     end
 
     def drop_database(db)
-      sql = "DROP DATABASE #{db};"
-      put sql, '/tmp/drop_database.sql'
-      run %Q{cd '#{current_release}' && #{drush_bin} sql-cli < /tmp/drop_database.sql}
+      logger.info "Dropping database #{db}"
+      conf = config(:database => db, :admin => true)
+      remote_sql("DROP DATABASE #{db};", :config => conf)
     end
 
     # Should split these out
-    def deep_update(h1,h2)
+    def self.deep_update(h1,h2)
       h1.inject({}) do |h,(k,v)|
         if Hash === v && Hash === h2[k]
           h[k] = deep_update(v,h2[k])
@@ -177,12 +225,12 @@ module DrupalDeploy
       end
     end
 
-    def deep_merge(h1,h2)
+    def self.deep_merge(h1,h2)
       merger = proc { |key,v1,v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
       h1.merge(h2, &merger)
     end
 
-    def each_db(databases)
+    def self.each_db(databases)
       databases.each do |site_name,site|
         site.each do |db_name,db|
           yield db,site_name,db_name
@@ -190,7 +238,7 @@ module DrupalDeploy
       end
     end
 
-    def to_db_url(db)
+    def self.url(db)
       "#{db[:driver]}://#{db[:username]}:#{db[:password]}@#{db[:host]}:#{db[:port]}/#{db[:database]}"
     end
   end

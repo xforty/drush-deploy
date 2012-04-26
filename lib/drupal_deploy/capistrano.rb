@@ -1,5 +1,6 @@
 require 'drupal_deploy/error'
 require 'drupal_deploy/configuration'
+require 'drupal_deploy/database'
 
 require 'capistrano'
 require 'railsless-deploy'
@@ -71,9 +72,7 @@ module DrupalDeploy
             end
             if site["databases"]
               dbs = DrupalDeploy::Configuration.normalize_value site["databases"]
-              if !variables[:databases]
-                set :databases, dbs
-              end
+              set :databases, DrupalDeploy::Database.deep_merge(dbs,databases)
             end
           end
         end

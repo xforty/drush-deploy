@@ -1,8 +1,11 @@
+require 'drupal_deploy/database'
+
 before "deploy", "drupal:setup_build"
 before "deploy", "drupal:check_permissions"
 after "deploy:symlink", "drupal:symlink"
 after "deploy", "drupal:setup"
 after "deploy", "drupal:clearcache"
+before "drupal:install_profile", "drupal:db:configure"
 
 namespace :drupal do
   desc "Symlink shared directories"
@@ -20,22 +23,41 @@ namespace :drupal do
     run "chmod 644 #{latest_release}/sites/default/settings.php"
   end
 
-  desc "Run install or update scripts for Drupal"
-  task :setup, :roles => :web do
-    1
+  desc "Run update scripts for Drupal"
+  task :update, :roles => :web do
+    if update_modules
+
+    end
   end
 
+  desc "Install profile from command line"
   task :install_profile, :roles => :web do
       script= <<-END
-        PROFILES="$(
-          for p in `ls profiles`
-          do
-            echo "$(sed -n 's/name[ \t]*=[ \t]*//p' profiles/$p/$p.info) ($p)"
-          done)"
-        IFS=$'\n'
-        select PROFILE in $PROFILES; do break; done
-        PROFILE="$(echo "$PROFILE" | sed 's/.*(\(.*\))$/\1/'")"
+        cd '#{latest_release}'
+        for p in `ls profiles`
+        do
+          echo "$(sed -n 's/name[ \t]*=[ \t]*//p' profiles/$p/$p.info) ($p)"
+        done
       END
+      put script, '/tmp/select_profile.sh'
+      profiles = capture('bash /tmp/select_profile.sh').split(/\n/)
+
+      profile = Capistrano::CLI.ui.choose(*profiles) {|m| m.header = "Choose installation profile"}
+      machine_name = profile.match(/.*\((.*)\)$/)[1]
+      site_name = Capistrano::CLI.ui.ask("Site name?")
+      site_email = Capistrano::CLI.ui.ask("Site email?")
+      admin_email = Capistrano::CLI.ui.ask("Admin email?")
+      admin_user = Capistrano::CLI.ui.ask("Admin username?")
+      admin_password = Capistrano::CLI.password_prompt("Admin password?")
+      arguments = Capistrano::CLI.password_prompt("Additional profile settings (key=value)?")
+      dbconf = databases[:default][:default]
+      db_url = DrupalDeploy::Database.url(dbconf)
+
+      run "cd '#{latest_release}' && #{drush_bin} site-install --yes --db-url='#{db_url}'"\
+          " --account-mail='#{admin_email}' --account-name='#{admin_user}' --account-pass='#{admin_password}'"\
+          " --site-name='#{site_name}' --site-mail='#{site_email}' "\
+          "#{dbconf[:admin_username] ? "--db-su='#{dbconf[:admin_username]}'" : ''} #{dbconf[:admin_password] ? "--db-su-pw='#{dbconf[:admin_password]}'" : ''}"\
+          "#{machine_name} #{arguments}", :once => true
   end
 
   task :setup_build, :roles => :web do
