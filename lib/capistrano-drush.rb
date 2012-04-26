@@ -22,6 +22,10 @@ configuration.load do
 
 
   drush_cap = Drush::Capistrano.new
+  desc "Show list of valid targets"
+  task :targets do
+    drush_cap.targets.each {|t| puts t}
+  end
 
   if ENV['TARGET']
     drush_cap.load_target ENV['TARGET']

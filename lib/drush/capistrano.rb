@@ -36,44 +36,45 @@ module Drush
           if %w(remote-host roles).all? {|key| site[key]}
             # Setup servername. Use <username>@ and :<port> syntax in servername instead of
             # :user and ssh_option[:port] to allow for different values per host.
-            servername = sites["remote-host"]
+            servername = site["remote-host"]
 
             servername = site["remote-user"]+'@'+servername if site["remote-user"]
 
-            if site["ssh-options"].try(:[],:port)
-              servername += ':'+site["ssh-options"][:port].to_s
-              ssh_options.delete :port
+            ssh_opts = site["ssh-options"].dup
+            if ssh_opts && ssh_opts[:port]
+              servername += ':'+ssh_opts[:port].to_s
+              ssh_opts.delete :port
             end
 
-            server_args = [servername, *sites["roles"]]
-            server_args += sites["attributes"] if sites["attributes"]
+            attributes = site["attributes"] || {}
+            (attributes[:ssh_options] ||= {}).merge! ssh_opts
 
-            server *server_args
+            server servername, *site["roles"], attributes
 
             # If global settings are already set, don't overwrite
-            ignore = []
-            if site["ssh-options"]
-              if ssh_options.empty?
-                ssh_options = site["ssh-options"]
-              elsif ssh_options != site["ssh-options"]
-                ignore << "ssh-options"
-              end
+            root = site["root"].dup
+            unless root.sub! %r{/current/?$},''
+              throw Error.new "root setting of site \"#{sitename}\" does not end in /current: \"#{root}\""
             end
-            if site["root"]
+            if root
               if !defined?(deploy_to)
-                set :deploy_to, site["root"]
-              elsif deploy_to != site["root"]
-                ignore << "root"
+                set :deploy_to, root
+              elsif deploy_to != root
+                logger.warn "Ignoring \"root\" option for site #{sitename} because deploy_to has already been set.\n"\
+                            "Note there may be only one root value for a single deploy"
               end
-            end
-            # Print warnings when ignoring settings
-            unless ignore.empty?
-              logger.warn "Ignoring options #{ignore.join(", ")} for site #{sitename} because it is already set to a different value"
             end
           else
             logger.info "Skipping site \"#{sitename}\" because missing a required setting."
           end
         end
+      end
+    end
+
+    def targets
+      @drush_config.aliases.inject([]) do |list,(k,v)|
+        list << k if v["site-list"] || (v["remote-host"] && v["roles"])
+        list
       end
     end
   end
