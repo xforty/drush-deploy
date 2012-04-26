@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require 'capistrano/cli'
+module Capistrano
+  class CLI
+    alias_method :execute_without_drush, :execute!
+    def execute_with_drush
+      options[:recipes] << File.expand_path('../../lib/capistrano-drush.cap', __FILE__)
+      execute_without_drush
+    end
+    alias_method :execute!, :execute_with_drush
+  end
+end
+Capistrano::CLI.execute
