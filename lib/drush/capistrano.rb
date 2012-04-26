@@ -1,6 +1,7 @@
 require 'drush/error'
 require 'drush/configuration'
 
+require 'capistrano'
 require 'railsless-deploy'
 
 module Drush
@@ -8,22 +9,22 @@ module Drush
     class Error < Drush::Error; end
 
     def initialize
-      @cap_config = Capistrano::Configuration.instance(:must_exist)
+      @cap_config = ::Capistrano::Configuration.instance(:must_exist)
 
       if @cap_config.exists? :drush
         @drush_config = Drush::Configuration.new @cap_config[:drush]
-        @drush_config.load_configuration
-        @cap_config.logger.info "Loaded sites: #{@drush_config.aliases.join(", ")}"
       else
         @drush_config = Drush::Configuration.new
         @cap_config.set :drush, @drush_config.drush
       end
       @cap_config.logger.info "Using drush at \"#{@drush_config.drush}\""
+      @cap_config.logger.info "Loaded sites: #{@drush_config.aliases.keys.join(", ")}"
     end
 
     # Take a sitename and setup it's settings as the target host
     def load_target(sitename)
       site = @drush_config.lookup_site(sitename)
+      @cap_config.logger.info site.inspect
       return nil unless site
 
       if site["site-list"]

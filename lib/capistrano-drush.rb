@@ -3,16 +3,12 @@ require 'drush/capistrano'
 
 configuration = Capistrano::Configuration.instance(:must_exist) 
 
+
 configuration.load do
   set :deploy_via, :copy
   _cset :drush_bin, "drush"
   _cset :make, nil
   _cset :makefile, 'distro.make'
-
-  if ENV['TARGET']
-    drush_cap = Drush::Capistrano.new
-    drush_cap.load_target ENV['TARGET']
-  end
 
   # --------------------------------------------
   # Calling our Methods
@@ -24,6 +20,12 @@ configuration.load do
   after "deploy", "drupal:clearcache"
   after "deploy", "deploy:cleanup"
 
+
+  drush_cap = Drush::Capistrano.new
+
+  if ENV['TARGET']
+    drush_cap.load_target ENV['TARGET']
+  end
 
   # --------------------------------------------
   # Overloaded Methods

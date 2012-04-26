@@ -11,6 +11,7 @@ module Drush
 
     def initialize(drush = 'drush')
       @drush = drush
+      load_configuration
     end
 
     def load_configuration
@@ -63,7 +64,7 @@ module Drush
           word[1..-1].chars do |c|
             case c
             when 'C'
-              option_hash["compression"] = 1
+              option_hash["compression"] = true
             when 'i'
               option_hash["identityfile"] = words.shift
             when 'p'
@@ -90,7 +91,7 @@ module Drush
       dest_val = handle_option(sources,keys) {|*a| yield *a}
       if dest_val
         keys.inject(dest).with_index do |h,k,i|
-          if i+1 = keys.size
+          if i+1 == keys.size
             h[k] = dest_val
           else
             h[k] = {} unless h[k]
