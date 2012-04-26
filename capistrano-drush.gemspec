@@ -7,6 +7,7 @@ Gem::Specification.new do |s|
   s.email       = 'matt@xforty.com'
   s.files       = `git ls-files`.split("\n")
   s.homepage    = 'https://github.com/xforty/capistrano-drush'
+  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
   s.extra_rdoc_files = [
     "README.md"
