@@ -8,6 +8,8 @@ module Drush
   class Capistrano
     class Error < Drush::Error; end
 
+    DEFAULT_ROLES = [:web]
+
     def initialize
       @cap_config = ::Capistrano::Configuration.instance(:must_exist)
 
@@ -30,9 +32,10 @@ module Drush
         # Site group
         site["site-list"].each {|member| load_target member}
       else
+        this = self
         @cap_config.load do
-          # Verify existence of required settings
-          if %w(remote-host roles).all? {|key| site[key]}
+          # Verify existence of required setting
+          if this.valid_target(site)
             # Setup servername. Use <username>@ and :<port> syntax in servername instead of
             # :user and ssh_option[:port] to allow for different values per host.
             servername = site["remote-host"]
@@ -47,8 +50,12 @@ module Drush
 
             attributes = site["attributes"] || {}
             (attributes[:ssh_options] ||= {}).merge! ssh_opts
-
-            server servername, *site["roles"], attributes
+            roles = site["roles"]
+            unless roles
+              roles = DEFAULT_ROLES
+              logger.info "Using default roles #{roles.map{|r| "#{r}"}.join(", ")} for target \"#{sitename}\""
+            end
+            server servername, *roles, attributes
 
             # If global settings are already set, don't overwrite
             root = site["root"].dup
@@ -63,16 +70,18 @@ module Drush
                             "Note there may be only one root value for a single deploy"
               end
             end
-          else
-            logger.info "Skipping site \"#{sitename}\" because missing a required setting."
           end
         end
       end
     end
 
+    def valid_target(site)
+      site["site-list"] || site["remote-host"]
+    end
+
     def targets
       @drush_config.aliases.inject([]) do |list,(k,v)|
-        list << k if v["site-list"] || (v["remote-host"] && v["roles"])
+        list << k if valid_target(v)
         list
       end
     end
