@@ -25,7 +25,6 @@ module Drush
     # Take a sitename and setup it's settings as the target host
     def load_target(sitename)
       site = @drush_config.lookup_site(sitename)
-      @cap_config.logger.info site.inspect
       return nil unless site
 
       if site["site-list"]
