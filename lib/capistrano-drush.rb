@@ -103,7 +103,7 @@ configuration.load do
         END
     end
 
-    task :setup_build, :roles => :web do
+    task :setup_build do
       if ENV['MAKE']
         set :make, ENV['MAKE'] =~ /^(0|no?)$/i
       end
