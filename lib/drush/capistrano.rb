@@ -4,9 +4,9 @@ require 'drush/configuration'
 require 'capistrano'
 require 'railsless-deploy'
 
-module Drush
+module DrupalDeploy
   class Capistrano
-    class Error < Drush::Error; end
+    class Error < DrupalDeploy::Error; end
 
     DEFAULT_ROLES = [:web]
 
@@ -14,9 +14,9 @@ module Drush
       @cap_config = ::Capistrano::Configuration.instance(:must_exist)
 
       if @cap_config.exists? :drush
-        @drush_config = Drush::Configuration.new @cap_config[:drush]
+        @drush_config = DrupalDeploy::Configuration.new @cap_config[:drush]
       else
-        @drush_config = Drush::Configuration.new
+        @drush_config = DrupalDeploy::Configuration.new
         @cap_config.set :drush, @drush_config.drush
       end
       @cap_config.logger.info "Using drush at \"#{@drush_config.drush}\""

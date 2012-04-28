@@ -4,9 +4,9 @@ require 'shellwords'
 require 'php_serialize'
 require 'net/ssh/config'
 
-module Drush
+module DrupalDeploy
   class Configuration
-    class Error < Drush::Error; end
+    class Error < DrupalDeploy::Error; end
     attr_reader :aliases, :drush
 
     def initialize(drush = 'drush')

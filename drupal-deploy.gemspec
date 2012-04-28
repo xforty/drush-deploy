@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name        = 'capistrano-drush'
+  s.name        = 'drupal-deploy'
   s.version     = '0.9.0'
   s.summary     = "Deployment strategy for Drupal using Drush"
   s.description = "Utilizes capistrano to allow for doing intellegent deployments of drupal projects."

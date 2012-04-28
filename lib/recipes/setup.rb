@@ -15,7 +15,7 @@ set :source, ENV['SOURCE'] if ENV['SOURCE']
 
 
 
-set :drush_cap, Drush::Capistrano.new
+set :drush_cap, DrupalDeploy::Capistrano.new
 
 if exists? :target
   target.split(/ *, */).each {|t| drush_cap.load_target t }
