@@ -1,5 +1,5 @@
-require 'drush/error'
-require 'drush/configuration'
+require 'drupal_deploy/error'
+require 'drupal_deploy/configuration'
 
 require 'capistrano'
 require 'railsless-deploy'

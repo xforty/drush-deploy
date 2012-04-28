@@ -1,4 +1,4 @@
-require 'drush/capistrano'
+require 'drupal_deploy/capistrano'
 
 set :deploy_via, :copy
 set :scm, :none

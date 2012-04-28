@@ -1,4 +1,4 @@
-require 'drush/error'
+require 'drupal_deploy/error'
 
 require 'shellwords'
 require 'php_serialize'
