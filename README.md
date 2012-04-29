@@ -2,7 +2,7 @@ version 0.9.0
 
 ## DESCRIPTION
 
-Provides capistrano deployment strategy for Drupal Drush.
+Provides capistrano deployment strategy for Drupal.
 
 ## REQUIREMENTS
 
@@ -12,4 +12,4 @@ Provides capistrano deployment strategy for Drupal Drush.
 
 ## USAGE
 
-        # gem install capistrano-drush
+        # gem install drupal-deploy
