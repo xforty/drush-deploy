@@ -1,12 +1,12 @@
 Gem::Specification.new do |s|
   s.name        = 'drupal-deploy'
-  s.version     = '0.9.0'
+  s.version     = '1.0.0.alpha1'
   s.summary     = "Deployment strategy for Drupal using Drush"
   s.description = "Utilizes capistrano to allow for doing intellegent deployments of drupal projects."
   s.authors     = ["Matt Edlefsen"]
   s.email       = 'matt@xforty.com'
   s.files       = `git ls-files`.split("\n")
-  s.homepage    = 'https://github.com/xforty/capistrano-drush'
+  s.homepage    = 'https://github.com/xforty/drupal-deploy'
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
   s.extra_rdoc_files = [
