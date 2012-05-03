@@ -12,4 +12,4 @@ Provides capistrano deployment strategy for Drupal.
 
 ## USAGE
 
-        # gem install drush-deploy
+        # gem install --pre drush-deploy
