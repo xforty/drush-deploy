@@ -1,6 +1,6 @@
-require 'drupal_deploy/database'
+require 'drush_deploy/database'
 
-drupal_db = DrupalDeploy::Database.new(self)
+drupal_db = DrushDeploy::Database.new(self)
 
 after "deploy", "db:drupal:update_settings"
 after "deploy", "db:version:create"
@@ -28,11 +28,11 @@ namespace :db do
         drupal_db.configure
 
         unless databases.nil? || databases.is_a?(Hash)
-          throw DrupalDeploy::Error.new "Invalid value for databases: #{databases.inspect}"
+          throw DrushDeploy::Error.new "Invalid value for databases: #{databases.inspect}"
         end
 
         # Set some defaults
-        DrupalDeploy::Database.each_db(databases) do |db|
+        DrushDeploy::Database.each_db(databases) do |db|
           if db[:driver]
             db[:driver] = db[:driver].to_sym
           else
@@ -54,7 +54,7 @@ namespace :db do
       configure unless configured
       settings = databases.inject({}) do |h,(k,site)|
         h[k] = site.inject({}) do |h,(k,db)|
-          h[k] = db.keep_if { |k,v| DrupalDeploy::Database::STANDARD_KEYS.include? k }
+          h[k] = db.keep_if { |k,v| DrushDeploy::Database::STANDARD_KEYS.include? k }
           h
         end
         h
@@ -81,7 +81,7 @@ namespace :db do
     desc "Rollback to a previous version of the database"
     task :rollback, :roles => :web do
       unless releases.size > 1
-        throw DrupalDeploy::Error.new "No previous versions to rollback to"
+        throw DrushDeploy::Error.new "No previous versions to rollback to"
       end
       current = drupal_db.config[:database]
       release = releases.last

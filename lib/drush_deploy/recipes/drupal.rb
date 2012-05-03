@@ -1,4 +1,4 @@
-require 'drupal_deploy/database'
+require 'drush_deploy/database'
 
 before "deploy", "drupal:setup_build"
 before "deploy", "drupal:check_permissions"
@@ -43,7 +43,7 @@ namespace :drupal do
       admin_password = Capistrano::CLI.password_prompt("Admin password?")
       arguments = Capistrano::CLI.password_prompt("Additional profile settings (key=value)?")
       dbconf = databases[:default][:default]
-      db_url = DrupalDeploy::Database.url(dbconf)
+      db_url = DrushDeploy::Database.url(dbconf)
 
       run "cd '#{latest_release}' && #{drush_bin} site-install --yes --db-url='#{db_url}'"\
           " --account-mail='#{admin_email}' --account-name='#{admin_user}' --account-pass='#{admin_password}'"\

@@ -1,4 +1,4 @@
-module DrupalDeploy
+module DrushDeploy
   module Paths
     def self.root(path = '')
       File.expand_path('../../../' + path,__FILE__)
@@ -13,7 +13,7 @@ module DrupalDeploy
     end
 
     def self.recipe(path)
-      root('lib/drupal_deploy/recipes/' + path + '.rb')
+      root('lib/drush_deploy/recipes/' + path + '.rb')
     end
   end
 end

@@ -1,4 +1,4 @@
-require 'drupal_deploy/capistrano'
+require 'drush_deploy/capistrano'
 
 set :deploy_via, :copy
 set :scm, :none
@@ -24,7 +24,7 @@ set :configured, false
 
 set :update_modules, true
 
-set :drush_cap, DrupalDeploy::Capistrano.new
+set :drush_cap, DrushDeploy::Capistrano.new
 
 if exists? :target
   target.split(/ *, */).each {|t| drush_cap.load_target t }

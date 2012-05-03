@@ -1,12 +1,12 @@
-require 'drupal_deploy/error'
+require 'drush_deploy/error'
 
 require 'shellwords'
 require 'php_serialize'
 require 'net/ssh/config'
 
-module DrupalDeploy
+module DrushDeploy
   class Configuration
-    class Error < DrupalDeploy::Error; end
+    class Error < DrushDeploy::Error; end
     attr_reader :aliases, :drush
 
     def self.unserialize_php(php)

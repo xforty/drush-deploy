@@ -1,13 +1,13 @@
-require 'drupal_deploy/error'
-require 'drupal_deploy/configuration'
-require 'drupal_deploy/database'
+require 'drush_deploy/error'
+require 'drush_deploy/configuration'
+require 'drush_deploy/database'
 
 require 'capistrano'
 require 'railsless-deploy'
 
-module DrupalDeploy
+module DrushDeploy
   class Capistrano
-    class Error < DrupalDeploy::Error; end
+    class Error < DrushDeploy::Error; end
 
     DEFAULT_ROLES = [:web]
 
@@ -15,9 +15,9 @@ module DrupalDeploy
       @cap_config = ::Capistrano::Configuration.instance(:must_exist)
 
       if @cap_config.exists? :drush
-        @drush_config = DrupalDeploy::Configuration.new @cap_config[:drush]
+        @drush_config = DrushDeploy::Configuration.new @cap_config[:drush]
       else
-        @drush_config = DrupalDeploy::Configuration.new
+        @drush_config = DrushDeploy::Configuration.new
         @cap_config.set :drush, @drush_config.drush
       end
       @cap_config.logger.info "Using drush at \"#{@drush_config.drush}\""
@@ -71,8 +71,8 @@ module DrupalDeploy
               end
             end
             if site["databases"]
-              dbs = DrupalDeploy::Configuration.normalize_value site["databases"]
-              set :databases, DrupalDeploy::Database.deep_merge(dbs,databases)
+              dbs = DrushDeploy::Configuration.normalize_value site["databases"]
+              set :databases, DrushDeploy::Database.deep_merge(dbs,databases)
             end
           end
         end

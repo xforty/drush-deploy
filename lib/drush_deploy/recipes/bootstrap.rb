@@ -1,2 +1,2 @@
 # Needed for some reason
-require 'drupal_deploy'
+require 'drush_deploy'
