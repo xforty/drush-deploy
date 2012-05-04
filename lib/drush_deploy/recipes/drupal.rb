@@ -87,4 +87,27 @@ namespace :drupal do
     end
   end
 
+  desc "Sync files and sql between drupal sites"
+  task :sync, :roles => :web do
+    sync_files
+    sync_db
+  end
+
+  desc "Sync files between drupal sites"
+  task :sync_files, :roles => :web do
+    unless exists?(:target) && exists?(:source)
+      abort "target and source must both be set for syncing"
+    end
+    run_locally "drush rsync @#{source.sub(/^@/,'')}:%files @#{target.sub(/^@/,'')}:%files --yes"
+  end
+
+  desc "Sync database between drupal sites"
+  task :sync_db, :roles => :web do
+    unless exists?(:target) && exists?(:source)
+      abort "target and source must both be set for syncing"
+    end
+    run_locally "drush sql-sync @#{source.sub(/^@/,'')} @#{target.sub(/^@/,'')} --yes"
+    clearcache
+  end
+
 end
