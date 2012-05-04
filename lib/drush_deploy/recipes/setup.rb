@@ -3,6 +3,7 @@ require 'drush_deploy/capistrano'
 set :deploy_via, :copy
 set :scm, :none
 set :repository, "."
+set :use_sudo, false
 set :drush_bin, "drush"
 set :make, nil
 set :makefile, 'distro.make'
