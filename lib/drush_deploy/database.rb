@@ -166,7 +166,7 @@ module DrushDeploy
       logger.info "Getting list of databases versions"
       sql = %q{SELECT SCHEMA_NAME FROM information_schema.SCHEMATA
                WHERE SCHEMA_NAME REGEXP '%{database}_[0-9]+';} % conf
-      remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1..-1].sort.reverse
+      (remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1..-1] || []).sort.reverse
     end
 
     def db_exists?(db = nil)
