@@ -1,14 +1,15 @@
 require 'drush_deploy/database'
 
 before "deploy", "drupal:setup_build"
-before "deploy", "drupal:check_permissions"
-after "deploy:symlink", "drupal:symlink"
+before "deploy:symlink", "drupal:symlink"
+after "drupal:symlink", "drupal:check_permissions"
 after "deploy", "drupal:clearcache"
 before "drupal:install_profile", "db:drupal:configure"
 
 namespace :drupal do
   desc "Symlink shared directories"
   task :symlink, :roles => :web do
+    run "mkdir -p #{shared_path}/default/files || true"
     run "ln -nfs #{shared_path}/default/files #{latest_release}/sites/default/files"
   end
  
