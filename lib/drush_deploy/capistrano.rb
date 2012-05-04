@@ -42,7 +42,7 @@ module DrushDeploy
 
             servername = site["remote-user"]+'@'+servername if site["remote-user"]
 
-            ssh_opts = site["ssh-options"].dup
+            ssh_opts = site["ssh-options"].try(:dup)
             if ssh_opts && ssh_opts[:port]
               servername += ':'+ssh_opts[:port].to_s
               ssh_opts.delete :port
