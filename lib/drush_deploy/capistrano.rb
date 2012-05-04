@@ -42,6 +42,8 @@ module DrushDeploy
 
             servername = site["remote-user"]+'@'+servername if site["remote-user"]
 
+            attributes = site["attributes"] || {}
+
             if site["ssh-options"]
               ssh_opts = site["ssh-options"].dup
               if  ssh_opts[:port]
@@ -51,7 +53,6 @@ module DrushDeploy
               (attributes[:ssh_options] ||= {}).merge! ssh_opts
             end
 
-            attributes = site["attributes"] || {}
             roles = site["roles"]
             unless roles
               roles = DEFAULT_ROLES
