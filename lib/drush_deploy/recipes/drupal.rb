@@ -54,19 +54,12 @@ namespace :drupal do
   end
 
   task :setup_build, :roles => :web do
-    if ENV['MAKE']
-      set :make, ENV['MAKE'] =~ /^(0|no?)$/i
-    end
-    if ENV['MAKEFILE']
-      set :makefile, ENV['MAKEFILE']
-    end
-
     build_cmd = "drush make '#{makefile}' ."
 
-    if make.nil?
+    if make == :auto
       build_cmd = "[ -f index.php ] || { [ -f '#{makefile}' ] && #{build_cmd}; }"
     end
-    if make != false
+    if make
       set :build_script, build_cmd
     end
   end
