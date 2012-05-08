@@ -1,29 +1,35 @@
 require 'drush_deploy/capistrano'
 
-set :deploy_via, :copy
+true_values = /^(1|y(es)?|t(rue)?)$/i
+
 set :scm, :none
 set :repository, "."
-set :use_sudo, false
-set :drush_bin, "drush"
 set :make, nil
 set :makefile, 'distro.make'
+set :databases, {}
+set :update_modules, true
 
-set :drush, ENV['DRUSH'] if ENV['DRUSH']
-set :scm, ENV['SCM'] if ENV['SCM']
+set :scm, ENV['SCM'].to_sym if ENV['SCM']
 set :repository, ENV['REPO'] if ENV['REPO']
+set :make, (ENV['MAKE'] =~ true_values) if ENV['MAKE']
+set :makefile, ENV['MAKEFILE'] if ENV['MAKEFILE']
+set :update_modules, (ENV['UPDATE_MODULES'] =~ true_values) if ENV['UPDATE_MODULES']
+
 set :target, ENV['TARGET'] if ENV['TARGET']
 set :source, ENV['SOURCE'] if ENV['SOURCE']
 
+set :deploy_via, :copy
+set :use_sudo, false
+set :drush_bin, "drush"
+
 set :databases_path, [ '~/.drush/database.php', '~/.drush/database.yml', 
                        '/etc/drush/database.php','/etc/drush/database.yml',
-                       'sites/default/default.settings.php', 'sites/default/settings.php']
-set :databases, {}
+                       'sites/default/default.settings.php']
 
 set :database_ports, { :pgsql => 5432, :mysql => 3306 }
 
 set :configured, false
 
-set :update_modules, true
 
 set :drush_cap, DrushDeploy::Capistrano.new
 
