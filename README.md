@@ -1,15 +1,21 @@
-version 0.9.0
+version 1.0.0
 
 ## DESCRIPTION
 
-Provides capistrano deployment strategy for Drupal Drush.
+Provides capistrano deployment strategy for Drupal.
 
 ## REQUIREMENTS
 
 * Capistrano 
 * railsless-deloy
 * php\_serialize
+* Drush
+
+On remote servers you must have
+
+* Drush
+* File system acls enabled (`setfacl`)
 
 ## USAGE
 
-        # gem install capistrano-drush
+        # gem install drush-deploy

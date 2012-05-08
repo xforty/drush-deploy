@@ -1,13 +1,30 @@
-require 'drush/error'
+require 'drush_deploy/error'
 
 require 'shellwords'
 require 'php_serialize'
 require 'net/ssh/config'
 
-module Drush
+module DrushDeploy
   class Configuration
-    class Error < Drush::Error; end
+    class Error < DrushDeploy::Error; end
     attr_reader :aliases, :drush
+
+    def self.unserialize_php(php)
+      normalize_value PHP.unserialize(php)
+    end
+
+    def self.normalize_value(val) 
+      if val.is_a? Hash
+        val.inject({}) do |result,(k,v)|
+          result[k.gsub(/-/,'_').to_sym] = normalize_value(v)
+          result
+        end
+      elsif val.is_a? Array
+        val.map &:normalize_value
+      else
+        val
+      end
+    end
 
     def initialize(drush = 'drush')
       @drush = drush
