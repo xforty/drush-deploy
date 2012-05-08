@@ -4,14 +4,16 @@ true_values = /^(1|y(es)?|t(rue)?)$/i
 
 set :scm, :none
 set :repository, "."
-set :make, nil
+set :make, :auto
 set :makefile, 'distro.make'
 set :databases, {}
 set :update_modules, true
 
 set :scm, ENV['SCM'].to_sym if ENV['SCM']
 set :repository, ENV['REPO'] if ENV['REPO']
-set :make, (ENV['MAKE'] =~ true_values) if ENV['MAKE']
+if ENV['MAKE']
+  set :make, (ENV['MAKE'] == 'auto' ? :auto : (ENV['MAKE'] =~ true_values))
+end
 set :makefile, ENV['MAKEFILE'] if ENV['MAKEFILE']
 set :update_modules, (ENV['UPDATE_MODULES'] =~ true_values) if ENV['UPDATE_MODULES']
 
