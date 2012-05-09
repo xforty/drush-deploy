@@ -20,6 +20,7 @@ set :update_modules, (ENV['UPDATE_MODULES'] =~ true_values) if ENV['UPDATE_MODUL
 set :target, ENV['TARGET'] if ENV['TARGET']
 set :source, ENV['SOURCE'] if ENV['SOURCE']
 
+set :application, 'Drupal'
 set :deploy_via, :copy
 set :use_sudo, false
 set :drush_bin, "drush"
