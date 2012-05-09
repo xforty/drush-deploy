@@ -97,26 +97,7 @@ module DrushDeploy
       option_hash
     end
 
-    def handle_option(sources,keys)
-      sources.inject(nil) do |dest,source|
-        source_val = keys.inject(source) {|h,k| h ? h[k] : nil}
-        yield dest,source_val
       end
-    end
-
-    def copy_option(dest,sources,keys)
-      dest_val = handle_option(sources,keys) {|*a| yield *a}
-      if dest_val
-        keys.inject(dest).with_index do |h,k,i|
-          if i+1 == keys.size
-            h[k] = dest_val
-          else
-            h[k] = {} unless h[k]
-          end
-          h[k]
-        end
-      end
-    end
 
   end
 end
