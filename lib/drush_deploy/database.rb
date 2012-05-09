@@ -153,7 +153,7 @@ module DrushDeploy
       url = options[:config] ? DrushDeploy::Database.url(options[:config]) : nil
       tmp = capture('mktemp').strip
       put(sql,tmp)
-      cmd = %Q{cd '#{current_path}' && #{drush_bin} sql-cli #{url ? "--db-url='#{url}'" : ''} < '#{tmp}'}
+      cmd = %Q{cd '#{latest_release}' && #{drush_bin} sql-cli #{url ? "--db-url='#{url}'" : ''} < '#{tmp}'}
       if options[:capture]
         capture(cmd)
       else
