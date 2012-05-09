@@ -32,33 +32,25 @@ module DrushDeploy
     end
 
     def load_configuration
-      @aliases = site_aliases
-      @aliases.each do |name,conf|
-        if conf['ssh-options']
-          conf['ssh-options'] = Net::SSH::Config.translate translate_ssh_options(conf['ssh-options'])
+      @aliases = PHP.unserialize(`#{@drush} eval 'print serialize(_drush_sitealias_all_list());'`).inject({}) do |h,(k,v)|
+        if k != '@none'
+          h[k.sub(/^@/,'')] = v
         end
-        if conf['roles']
-          if conf['roles'].is_a? String
-            conf['roles'] = conf['roles'].split(/ *, */)
-          end
-          conf['roles'] = conf['roles'].map{ |r| r.strip.to_sym }
-        end
-        if conf['attributes']
-          # Recursively turn all hash keys into symbols
-          mapper = lambda do |h|
-            h.inject({}) {|result,(k,v)| result[k.to_sym] = (v.is_a?(Hash) ? mapper(v) : v); result }
-          end
-          conf['attributes'] = mapper.(conf['attributes'])
-        end
+        h
       end
-    end
-
-    def site_aliases
-      PHP.unserialize(`#{@drush} eval 'print serialize(_drush_sitealias_all_list());'`).delete_if {|k,v| k == '@none'}
+      @normalized_aliases = {}
     end
 
     def lookup_site(sitename)
-      @aliases[sitename] || @aliases['@'+sitename]
+      sitename = sitename.sub(/^@/,'')
+      site = @normalized_aliases[sitename]
+      unless site
+        site = @aliases[sitename]        
+        if site
+          @normalized_aliases[sitename] = site = normalize_alias site
+        end
+      end
+      site
     end
 
     
@@ -97,7 +89,26 @@ module DrushDeploy
       option_hash
     end
 
+    def normalize_alias(conf)
+      conf = conf.dup
+      if conf['ssh-options']
+        conf['ssh-options'] = Net::SSH::Config.translate translate_ssh_options(conf['ssh-options'])
       end
+      if conf['roles']
+        if conf['roles'].is_a? String
+          conf['roles'] = conf['roles'].split(/ *, */)
+        end
+        conf['roles'] = conf['roles'].map{ |r| r.strip.to_sym }
+      end
+      if conf['attributes']
+        # Recursively turn all hash keys into symbols
+        mapper = lambda do |h|
+          h.inject({}) {|result,(k,v)| result[k.to_sym] = (v.is_a?(Hash) ? mapper(v) : v); result }
+        end
+        conf['attributes'] = mapper.(conf['attributes'])
+      end
+      conf
+    end
 
   end
 end
