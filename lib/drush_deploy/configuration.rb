@@ -32,33 +32,25 @@ module DrushDeploy
     end
 
     def load_configuration
-      @aliases = site_aliases
-      @aliases.each do |name,conf|
-        if conf['ssh-options']
-          conf['ssh-options'] = Net::SSH::Config.translate translate_ssh_options(conf['ssh-options'])
+      @aliases = PHP.unserialize(`#{@drush} eval 'print serialize(_drush_sitealias_all_list());'`).inject({}) do |h,(k,v)|
+        if k != '@none'
+          h[k.sub(/^@/,'')] = v
         end
-        if conf['roles']
-          if conf['roles'].is_a? String
-            conf['roles'] = conf['roles'].split(/ *, */)
-          end
-          conf['roles'] = conf['roles'].map{ |r| r.strip.to_sym }
-        end
-        if conf['attributes']
-          # Recursively turn all hash keys into symbols
-          mapper = lambda do |h|
-            h.inject({}) {|result,(k,v)| result[k.to_sym] = (v.is_a?(Hash) ? mapper(v) : v); result }
-          end
-          conf['attributes'] = mapper.(conf['attributes'])
-        end
+        h
       end
-    end
-
-    def site_aliases
-      PHP.unserialize(`#{@drush} eval 'print serialize(_drush_sitealias_all_list());'`).delete_if {|k,v| k == '@none'}
+      @normalized_aliases = {}
     end
 
     def lookup_site(sitename)
-      @aliases[sitename] || @aliases['@'+sitename]
+      sitename = sitename.sub(/^@/,'')
+      site = @normalized_aliases[sitename]
+      unless site
+        site = @aliases[sitename]        
+        if site
+          @normalized_aliases[sitename] = site = normalize_alias site
+        end
+      end
+      site
     end
 
     
@@ -87,7 +79,11 @@ module DrushDeploy
             when 'p'
               option_hash["port"] = words.shift
             when 'o'
-              option_hash.store(*(words.shift.split(/=/).tap {|opt| opt[0].downcase!}))
+              opt = words.shift.split(/=/)
+              if opt && opt.size == 2
+                opt[0].downcase!
+                option_hash.store *opt;
+              end
             end
           end
         else
@@ -97,25 +93,25 @@ module DrushDeploy
       option_hash
     end
 
-    def handle_option(sources,keys)
-      sources.inject(nil) do |dest,source|
-        source_val = keys.inject(source) {|h,k| h ? h[k] : nil}
-        yield dest,source_val
+    def normalize_alias(conf)
+      conf = conf.dup
+      if conf['ssh-options']
+        conf['ssh-options'] = Net::SSH::Config.translate translate_ssh_options(conf['ssh-options'])
       end
-    end
-
-    def copy_option(dest,sources,keys)
-      dest_val = handle_option(sources,keys) {|*a| yield *a}
-      if dest_val
-        keys.inject(dest).with_index do |h,k,i|
-          if i+1 == keys.size
-            h[k] = dest_val
-          else
-            h[k] = {} unless h[k]
-          end
-          h[k]
+      if conf['roles']
+        if conf['roles'].is_a? String
+          conf['roles'] = conf['roles'].split(/ *, */)
         end
+        conf['roles'] = conf['roles'].map{ |r| r.strip.to_sym }
       end
+      if conf['attributes']
+        # Recursively turn all hash keys into symbols
+        mapper = lambda do |h|
+          h.inject({}) {|result,(k,v)| result[k.to_sym] = (v.is_a?(Hash) ? mapper(v) : v); result }
+        end
+        conf['attributes'] = mapper.(conf['attributes'])
+      end
+      conf
     end
 
   end
