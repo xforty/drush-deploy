@@ -2,8 +2,8 @@ require 'drush_deploy/database'
 
 drupal_db = DrushDeploy::Database.new(self)
 
-after "deploy", "db:drupal:update_settings"
-after "deploy", "db:version:create"
+after "deploy:update_code", "db:drupal:update_settings"
+after "deploy:update_code", "db:version:create"
 before "deploy:rollback", "db:version:rollback"
 
 before "db:version:create", "db:drupal:configure"
@@ -11,7 +11,7 @@ before "db:version:rollback", "db:drupal:configure"
 before "db:version:cleanup", "db:drupal:configure"
 
 if update_modules
-  after "deploy", "db:drupal:update"
+  after "deploy:update_code", "db:drupal:update"
 end
 after "deploy:cleanup", "db:version:cleanup"
 
