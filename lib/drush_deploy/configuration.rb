@@ -79,7 +79,11 @@ module DrushDeploy
             when 'p'
               option_hash["port"] = words.shift
             when 'o'
-              option_hash.store(*(words.shift.split(/=/).tap {|opt| opt[0].downcase!}))
+              opt = words.shift.split(/=/)
+              if opt && opt.size == 2
+                opt[0].downcase!
+                option_hash.store *opt;
+              end
             end
           end
         else
