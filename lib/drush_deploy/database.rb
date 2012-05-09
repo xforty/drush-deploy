@@ -134,7 +134,7 @@ module DrushDeploy
     end
 
     def updatedb
-      run "cd '#{latest_release}' && #{drush_bin} updatedb", :once => true
+      run "cd '#{latest_release}' && #{drush_bin} updatedb --yes", :once => true
     end
 
     def config(*args)
