@@ -6,6 +6,7 @@ set :scm, :none
 set :repository, "."
 set :make, :auto
 set :makefile, 'distro.make'
+set :make_args, ''
 set :databases, {}
 set :update_modules, true
 
@@ -15,6 +16,7 @@ if ENV['MAKE']
   set :make, (ENV['MAKE'] == 'auto' ? :auto : (ENV['MAKE'] =~ true_values))
 end
 set :makefile, ENV['MAKEFILE'] if ENV['MAKEFILE']
+set :make_args, ENV['MAKE_ARGS'] if ENV['MAKE_ARGS']
 set :update_modules, (ENV['UPDATE_MODULES'] =~ true_values) if ENV['UPDATE_MODULES']
 
 set :target, ENV['TARGET'] if ENV['TARGET']

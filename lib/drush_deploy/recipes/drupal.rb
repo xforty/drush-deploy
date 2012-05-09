@@ -54,7 +54,7 @@ namespace :drupal do
   end
 
   task :setup_build, :roles => :web do
-    build_cmd = "drush make '#{makefile}' ."
+    build_cmd = "drush make #{make_args} '#{makefile}' ."
 
     if make == :auto
       build_cmd = "[ -f index.php ] || { [ -f '#{makefile}' ] && #{build_cmd}; }"
