@@ -78,7 +78,7 @@ namespace :drupal do
       end
     end
     if ! defined? www_user or www_user.nil?
-      run "setfacl -Rdm u:#{www_user}:rwx #{shared_path}/default/files && setfacl -Rm u:#{www_user}:rwx #{shared_path}/default/files"
+      run "which setfacl &>/dev/null && setfacl -Rdm u:#{www_user}:rwx #{shared_path}/default/files && setfacl -Rm u:#{www_user}:rwx #{shared_path}/default/files"
     end
   end
 
