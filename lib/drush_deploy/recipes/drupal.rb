@@ -2,15 +2,20 @@ require 'drush_deploy/database'
 
 before "deploy", "drupal:setup_build"
 before "deploy:symlink", "drupal:symlink"
-after "drupal:symlink", "drupal:check_permissions"
+before "deploy:setup", "drupal:setup"
+after "drupal:setup", "drupal:check_permissions"
 after "deploy", "drupal:clearcache"
 before "drupal:install_profile", "db:drupal:configure"
 
 namespace :drupal do
   desc "Symlink shared directories"
   task :symlink, :roles => :web do
-    run "mkdir -p #{shared_path}/default/files || true"
     run "ln -nfs #{shared_path}/default/files #{latest_release}/sites/default/files"
+  end
+
+  desc "Setup drupal specific configuration"
+  task :setup, :roles => :web do
+    run "mkdir -p #{shared_path}/default/files || true"
   end
  
   desc "Clear all Drupal cache"
@@ -78,7 +83,7 @@ namespace :drupal do
       end
     end
     if ! defined? www_user or www_user.nil?
-      run "setfacl -Rdm u:#{www_user}:rwx #{shared_path}/default/files && setfacl -Rm u:#{www_user}:rwx #{shared_path}/default/files"
+      run "! which setfacl &>/dev/null || { setfacl -Rdm u:#{www_user}:rwx #{shared_path}/default/files && setfacl -Rm u:#{www_user}:rwx #{shared_path}/default/files; }"
     end
   end
 

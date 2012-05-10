@@ -5,9 +5,11 @@ after "deploy:update_code", "db:drupal:update_settings"
 after "deploy:update_code", "db:version:create"
 before "deploy:rollback", "db:version:rollback"
 
-before "db:version:create", "db:drupal:configure"
-before "db:version:rollback", "db:drupal:configure"
-before "db:version:cleanup", "db:drupal:configure"
+if version_database
+  before "db:version:create", "db:drupal:configure"
+  before "db:version:rollback", "db:drupal:configure"
+  before "db:version:cleanup", "db:drupal:configure"
+end
 
 if update_modules
   after "deploy:update_code", "db:drupal:update"
