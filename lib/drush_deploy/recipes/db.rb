@@ -1,6 +1,5 @@
 require 'drush_deploy/database'
 
-drupal_db = DrushDeploy::Database.new(self)
 
 after "deploy:update_code", "db:drupal:update_settings"
 after "deploy:update_code", "db:version:create"
@@ -19,7 +18,9 @@ namespace :db do
   namespace :drupal do
     desc "Run update scripts for Drupal"
     task :update, :roles => :web do
-      drupal_db.updatedb
+      unless drupal_db.db_empty?
+        drupal_db.updatedb
+      end
     end
 
     desc "Determine database settings"
@@ -69,7 +70,7 @@ namespace :db do
       if releases.size > 1
         current = drupal_db.config[:database]
         backup = "#{current}_#{releases[-2]}"
-        unless drupal_db.db_exists? backup
+        unless drupal_db.db_empty? or drupal_db.db_exists? backup
           on_rollback do
             drupal_db.drop_database backup
           end
