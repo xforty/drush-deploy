@@ -2,6 +2,7 @@ require 'drush_deploy/database'
 
 before "deploy", "drupal:setup_build"
 before "deploy:symlink", "drupal:symlink"
+before "deploy:setup", "drupal:setup"
 after "drupal:setup", "drupal:check_permissions"
 after "deploy", "drupal:clearcache"
 before "drupal:install_profile", "db:drupal:configure"
@@ -9,8 +10,12 @@ before "drupal:install_profile", "db:drupal:configure"
 namespace :drupal do
   desc "Symlink shared directories"
   task :symlink, :roles => :web do
-    run "mkdir -p #{shared_path}/default/files || true"
     run "ln -nfs #{shared_path}/default/files #{latest_release}/sites/default/files"
+  end
+
+  desc "Setup drupal specific configuration"
+  task :setup, :roles => :web do
+    run "mkdir -p #{shared_path}/default/files || true"
   end
  
   desc "Clear all Drupal cache"
