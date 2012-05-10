@@ -1,8 +1,10 @@
-version 1.0.1.beta2
+version 1.0.1
 
 ## DESCRIPTION
 
 Provides capistrano deployment strategy for Drupal.
+
+For documentation please checkout the [wiki](https://github.com/xforty/drush-deploy/wiki)
 
 ## REQUIREMENTS
 
@@ -19,3 +21,5 @@ On remote servers you must have
 ## USAGE
 
         # gem install drush-deploy
+        cd <Drupal root>
+        drush-deploy TARGET=<drush alias>

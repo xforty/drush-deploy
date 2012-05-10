@@ -16,6 +16,7 @@ module DrushDeploy
     def initialize(config)
       @config = config
       @seen_paths = {}
+      @db_status = {}
     end
 
     def method_missing(sym, *args, &block)
@@ -153,12 +154,27 @@ module DrushDeploy
       url = options[:config] ? DrushDeploy::Database.url(options[:config]) : nil
       tmp = capture('mktemp').strip
       put(sql,tmp)
-      cmd = %Q{cd '#{current_path}' && #{drush_bin} sql-cli #{url ? "--db-url='#{url}'" : ''} < '#{tmp}'}
+      cmd = %Q{cd '#{latest_release}' && #{drush_bin} sql-cli #{url ? "--db-url='#{url}'" : ''} < '#{tmp}'}
       if options[:capture]
         capture(cmd)
       else
         run cmd, :once => true
       end
+    end
+
+    def db_empty?(db = nil)
+      conf = config
+      conf[:database] = db if db
+      db = conf[:database]
+      if @db_status[db].nil?
+        logger.info "Fetching status of db #{conf[:database]}"
+        sql = %q{SELECT count(*) FROM information_schema.tables 
+                 WHERE table_schema = '%{database}' LIMIT 1} % conf
+        conf[:database] = 'information_schema'
+        res = remote_sql(sql, :config => conf, :capture => true)
+        @db_status[db] = res.split(/\n/)[1].to_i == 0
+      end
+      @db_status[db]
     end
 
     def db_versions
@@ -181,13 +197,16 @@ module DrushDeploy
     def db_tables(db = nil)
       conf = config(:admin => true)
       conf[:database] = db if db
+      db = conf[:database]
       logger.info "Fetching table list of #{conf[:database]}"
       db_tables_query = %q{SELECT table_name FROM information_schema.tables
                            WHERE table_schema = '%{database}'
                              AND table_type = 'BASE TABLE'};
       sql = db_tables_query % conf
       conf[:database] = 'information_schema'
-      remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1..-1] || []
+      tables = remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1..-1] || []
+      @db_status[db] = tables.size == 0
+      tables
     end
 
     def copy_database(from,to)
@@ -204,6 +223,7 @@ module DrushDeploy
         END
       end
       remote_sql(sql, :config => conf)
+      @db_status.delete(to)
     end
 
     def rename_database(from,to)
@@ -220,12 +240,14 @@ module DrushDeploy
         sql += "ALTER TABLE #{from} RENAME TO #{to};"
       end
       remote_sql(sql, :config => conf)
+      @db_status.delete(to)
     end
 
     def drop_database(db)
       logger.info "Dropping database #{db}"
       conf = config(:database => db, :admin => true)
       remote_sql("DROP DATABASE #{db};", :config => conf)
+      @db_status[db] = false
     end
 
     # Should split these out
