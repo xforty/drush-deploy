@@ -2,7 +2,7 @@ require 'drush_deploy/database'
 
 before "deploy", "drupal:setup_build"
 before "deploy:symlink", "drupal:symlink"
-after "drupal:symlink", "drupal:check_permissions"
+after "drupal:setup", "drupal:check_permissions"
 after "deploy", "drupal:clearcache"
 before "drupal:install_profile", "db:drupal:configure"
 
