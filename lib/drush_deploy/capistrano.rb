@@ -36,6 +36,7 @@ module DrushDeploy
         @cap_config.load do
           # Verify existence of required setting
           if this.valid_target(site)
+            logger.info "Loading target #{sitename}"
             # Setup servername. Use <username>@ and :<port> syntax in servername instead of
             # :user and ssh_option[:port] to allow for different values per host.
             servername = site["remote-host"]

@@ -15,7 +15,9 @@ namespace :drupal do
  
   desc "Clear all Drupal cache"
   task :clearcache, :roles => :web do
-    run "#{drush_bin} -r #{current_path} cache-clear all"
+    unless drupal_db.db_empty?
+      run "#{drush_bin} -r #{latest_release} cache-clear all"
+    end
   end
 
   desc "Protect system files"
@@ -54,7 +56,7 @@ namespace :drupal do
   end
 
   task :setup_build, :roles => :web do
-    build_cmd = "drush make '#{makefile}' ."
+    build_cmd = "drush make #{make_args} '#{makefile}' ."
 
     if make == :auto
       build_cmd = "[ -f index.php ] || { [ -f '#{makefile}' ] && #{build_cmd}; }"
