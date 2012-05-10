@@ -78,6 +78,9 @@ module DrushDeploy
               dbs = DrushDeploy::Configuration.normalize_value site["databases"]
               set :databases, DrushDeploy::Database.deep_merge(dbs,databases)
             end
+            if site["version_database"]
+              set :version_database, (site["version_database"] == 1)
+            end
           end
         end
       end
