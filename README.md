@@ -1,4 +1,4 @@
-version 1.0.1.beta6
+version 1.0.1
 
 ## DESCRIPTION
 
