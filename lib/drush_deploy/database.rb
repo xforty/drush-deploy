@@ -67,8 +67,10 @@ module DrushDeploy
           }
         } 
       END
-      put script, '/tmp/load_db_credentials.php', :once => true
-      resp = capture "#{drush_bin} php-script /tmp/load_db_credentials.php"
+
+      tmp = capture('mktemp').strip
+      put script, tmp, :once => true
+      resp = capture "#{drush_bin} php-script #{tmp}"
       
       settings = {}
       unless resp.empty?
@@ -129,9 +131,10 @@ module DrushDeploy
         if ($backed_up) {
           rename($backup,$default);
         }
+        __END__
       END
-      put script, '/tmp/update_settings.php'
-      run "cd '#{latest_release}' && #{drush_bin} php-script /tmp/update_settings.php"
+
+      run "TMP=`mktemp` && sed -n '/^__END__$/ q; p' > $TMP && cd '#{latest_release}' && #{drush_bin} php-script $TMP", :data => script
     end
 
     def updatedb
