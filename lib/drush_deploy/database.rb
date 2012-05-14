@@ -70,7 +70,7 @@ module DrushDeploy
 
       tmp = capture('mktemp').strip
       put script, tmp, :once => true
-      resp = capture "#{drush_bin} php-script #{tmp}"
+      resp = capture "#{drush_bin} php-script '#{tmp}' && rm -f '#{tmp}'"
       
       settings = {}
       unless resp.empty?
@@ -134,7 +134,8 @@ module DrushDeploy
         __END__
       END
 
-      run "TMP=`mktemp` && sed -n '/^__END__$/ q; p' > $TMP && cd '#{latest_release}' && #{drush_bin} php-script $TMP", :data => script
+      run %Q{TMP=`mktemp` && sed -n '/^__END__$/ q; p' > $TMP && cd '#{latest_release}' && #{drush_bin} php-script $TMP && rm -f "$TMP"},
+          :data => script
     end
 
     def updatedb
@@ -157,7 +158,7 @@ module DrushDeploy
       url = options[:config] ? DrushDeploy::Database.url(options[:config]) : nil
       tmp = capture('mktemp').strip
       put(sql,tmp)
-      cmd = %Q{cd '#{latest_release}' && #{drush_bin} sql-cli #{url ? "--db-url='#{url}'" : ''} < '#{tmp}'}
+      cmd = %Q{cd '#{latest_release}' && #{drush_bin} sql-cli #{url ? "--db-url='#{url}'" : ''} < '#{tmp}' && rm -f '#{tmp}'}
       if options[:capture]
         capture(cmd)
       else
