@@ -12,6 +12,11 @@ module DrushDeploy
         super "Couldn't locate database configuration #{site_name}/#{db_name}. Please check your database configuration."
       end
     end
+    class FieldNotFound < Error
+      def initialize(key,site_name = 'default',db_name = 'default')
+        super "Couldn't find '#{key}' field in database configuration #{site_name}/#{db_name}. Please check your database configuration."
+      end
+    end
 
 
     STANDARD_KEYS = %w(driver database username password host port prefix collation).map &:to_sym
@@ -180,6 +185,7 @@ module DrushDeploy
       conf[:database] = db if db
       db = conf[:database]
       if @db_status[db].nil?
+        throw FieldNotFound.new 'database' unless conf[:database]
         logger.info "Fetching status of db #{conf[:database]}"
         sql = %q{SELECT count(*) FROM information_schema.tables 
                  WHERE table_schema = '%{database}' LIMIT 1} % conf
@@ -192,6 +198,7 @@ module DrushDeploy
 
     def db_versions
       conf = config(:admin => true)
+      throw FieldNotFound.new 'database' unless conf[:database]
       logger.info "Getting list of databases versions"
       sql = %q{SELECT SCHEMA_NAME FROM information_schema.SCHEMATA
                WHERE SCHEMA_NAME REGEXP '%{database}_[0-9]+';} % conf
@@ -201,6 +208,7 @@ module DrushDeploy
     def db_exists?(db = nil)
       conf = config(:admin => true)
       conf[:database] = db if db
+      throw FieldNotFound.new 'database' unless conf[:database]
       logger.info "Checking existence of #{conf[:database]}"
       sql = %q{SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '%{database}';} % conf
       conf[:database] = 'information_schema'
@@ -211,6 +219,7 @@ module DrushDeploy
       conf = config(:admin => true)
       conf[:database] = db if db
       db = conf[:database]
+      throw FieldNotFound.new 'database' unless conf[:database]
       logger.info "Fetching table list of #{conf[:database]}"
       db_tables_query = %q{SELECT table_name FROM information_schema.tables
                            WHERE table_schema = '%{database}'
