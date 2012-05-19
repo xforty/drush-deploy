@@ -7,6 +7,11 @@ require 'php_serialize'
 module DrushDeploy
   class Database
     class Error < DrushDeploy::Error; end
+    class ConfigNotFound < Error
+      def initialize(site_name,db_name)
+        super "Couldn't locate database configuration #{site_name}/#{db_name}. Please check your database configuration."
+      end
+    end
 
 
     STANDARD_KEYS = %w(driver database username password host port prefix collation).map &:to_sym
@@ -146,7 +151,11 @@ module DrushDeploy
       options = (args.size>0 && args.last.is_a?(Hash)) ? args.pop : {}
       site_name = args[0] || :default
       db_name = args[1] || :default
-      conf = databases[site_name][db_name].dup
+      if databases[site_name] && databases[site_name][db_name]
+        conf = databases[site_name][db_name].dup
+      else
+        throw ConfigNotFound.new site_name,db_name
+      end
       if options[:admin] && conf[:admin_username]
         conf[:username] = conf[:admin_username]
         conf[:password] = conf[:admin_password]
