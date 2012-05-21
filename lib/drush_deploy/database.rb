@@ -7,6 +7,20 @@ require 'php_serialize'
 module DrushDeploy
   class Database
     class Error < DrushDeploy::Error; end
+    class ConfigNotFound < Error
+      def initialize(site_name,db_name)
+        super "Couldn't locate database configuration #{site_name}/#{db_name}. Please check your database configuration."
+      end
+    end
+    class FieldNotFound < Error
+      def initialize(key,site_name = 'default',db_name = 'default')
+        key = [key] unless key.is_a? Array
+        key = key.map {|k| "'#{k}'"}.join(',')
+
+        super "Couldn't find #{key} field#{key.size == 1 ? '' : 's'} in database configuration #{site_name}/#{db_name}."\
+              " Please check your database configuration."
+      end
+    end
 
 
     STANDARD_KEYS = %w(driver database username password host port prefix collation).map &:to_sym
@@ -146,7 +160,11 @@ module DrushDeploy
       options = (args.size>0 && args.last.is_a?(Hash)) ? args.pop : {}
       site_name = args[0] || :default
       db_name = args[1] || :default
-      conf = databases[site_name][db_name].dup
+      if databases[site_name] && databases[site_name][db_name]
+        conf = databases[site_name][db_name].dup
+      else
+        throw ConfigNotFound.new site_name,db_name
+      end
       if options[:admin] && conf[:admin_username]
         conf[:username] = conf[:admin_username]
         conf[:password] = conf[:admin_password]
@@ -171,6 +189,7 @@ module DrushDeploy
       conf[:database] = db if db
       db = conf[:database]
       if @db_status[db].nil?
+        throw FieldNotFound.new 'database' unless conf[:database]
         logger.info "Fetching status of db #{conf[:database]}"
         sql = %q{SELECT count(*) FROM information_schema.tables 
                  WHERE table_schema = '%{database}' LIMIT 1} % conf
@@ -183,6 +202,7 @@ module DrushDeploy
 
     def db_versions
       conf = config(:admin => true)
+      throw FieldNotFound.new 'database' unless conf[:database]
       logger.info "Getting list of databases versions"
       sql = %q{SELECT SCHEMA_NAME FROM information_schema.SCHEMATA
                WHERE SCHEMA_NAME REGEXP '%{database}_[0-9]+';} % conf
@@ -192,6 +212,7 @@ module DrushDeploy
     def db_exists?(db = nil)
       conf = config(:admin => true)
       conf[:database] = db if db
+      throw FieldNotFound.new 'database' unless conf[:database]
       logger.info "Checking existence of #{conf[:database]}"
       sql = %q{SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '%{database}';} % conf
       conf[:database] = 'information_schema'
@@ -202,6 +223,7 @@ module DrushDeploy
       conf = config(:admin => true)
       conf[:database] = db if db
       db = conf[:database]
+      throw FieldNotFound.new 'database' unless conf[:database]
       logger.info "Fetching table list of #{conf[:database]}"
       db_tables_query = %q{SELECT table_name FROM information_schema.tables
                            WHERE table_schema = '%{database}'
@@ -280,6 +302,9 @@ module DrushDeploy
     end
 
     def self.url(db)
+      missing_keys = %w(driver username password host port database).delete_if {|k| db.key? k.to_sym}
+      throw FieldNotFound.new missing_keys unless missing_keys.empty?
+      
       "#{db[:driver]}://#{db[:username]}:#{db[:password]}@#{db[:host]}:#{db[:port]}/#{db[:database]}"
     end
   end
