@@ -9,7 +9,7 @@ set :makefile, 'distro.make'
 set :make_args, ''
 set :databases, {}
 set :update_modules, true
-set :version_database, nil
+set :version_database, true
 
 set :scm, ENV['SCM'].to_sym if ENV['SCM']
 set :repository, ENV['REPO'] if ENV['REPO']
