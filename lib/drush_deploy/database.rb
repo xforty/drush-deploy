@@ -14,7 +14,11 @@ module DrushDeploy
     end
     class FieldNotFound < Error
       def initialize(key,site_name = 'default',db_name = 'default')
-        super "Couldn't find '#{key}' field in database configuration #{site_name}/#{db_name}. Please check your database configuration."
+        key = [key] unless key.is_a? Array
+        key = key.map {|k| "'#{k}'"}.join(',')
+
+        super "Couldn't find #{key} field#{key.size == 1 ? '' : 's'} in database configuration #{site_name}/#{db_name}."\
+              " Please check your database configuration."
       end
     end
 
@@ -298,6 +302,9 @@ module DrushDeploy
     end
 
     def self.url(db)
+      missing_keys = %w(driver username password host port database).delete_if {|k| db.key? k.to_sym}
+      throw FieldNotFound.new missing_keys unless missing_keys.empty?
+      
       "#{db[:driver]}://#{db[:username]}:#{db[:password]}@#{db[:host]}:#{db[:port]}/#{db[:database]}"
     end
   end
