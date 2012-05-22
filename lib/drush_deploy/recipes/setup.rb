@@ -30,7 +30,8 @@ set :drush_bin, "drush"
 
 set(:databases_path) { [ "#{deploy_to}/database.php", "#{deploy_to}/database.yml",
                        '~/.drush/database.php', '~/.drush/database.yml', 
-                       '/etc/drush/database.php','/etc/drush/database.yml' ] }
+                       '/etc/drush/database.php','/etc/drush/database.yml',
+                       'sites/default/default.settings.php'] }
 
 set :database_ports, { :pgsql => 5432, :mysql => 3306 }
 
