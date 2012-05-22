@@ -20,6 +20,12 @@ On remote servers you must have
 
 ## USAGE
 
-        # gem install drush-deploy
+        # Initial Setup
+        gem install drush-deploy
+
+        # Once for each new site
+        drush-deploy TARGET=<drush alias> deploy:setup
+           
+        # To deploy
         cd <Drupal root>
         drush-deploy TARGET=<drush alias>
