@@ -17,12 +17,12 @@ namespace :deploy do
   namespace :web do
     desc "Disable the application and show a message screen"
     task :disable, :roles => :web do
-      run "#{drush_bin} -r #{latest_release} vset --yes site_offline 1"
+      run "#{remote_drush} -r #{latest_release} vset --yes site_offline 1"
     end
 
     desc "Enable the application and remove the message screen"
     task :enable, :roles => :web do
-      run "#{drush_bin} -r #{latest_release} vdel --yes site_offline"
+      run "#{remote_drush} -r #{latest_release} vdel --yes site_offline"
     end
   end
 end

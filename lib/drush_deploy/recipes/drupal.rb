@@ -1,5 +1,6 @@
 require 'drush_deploy/database'
 
+on :start, "drupal:load_targets"
 before "deploy", "drupal:setup_build"
 before "deploy:symlink", "drupal:symlink"
 before "deploy:setup", "drupal:setup"
@@ -21,7 +22,7 @@ namespace :drupal do
   desc "Clear all Drupal cache"
   task :clearcache, :roles => :web do
     unless drupal_db.db_empty?
-      run "#{drush_bin} -r #{latest_release} cache-clear all"
+      run "#{remote_drush} -r #{latest_release} cache-clear all"
     end
   end
 
@@ -53,7 +54,7 @@ namespace :drupal do
       dbconf = databases[:default][:default]
       db_url = DrushDeploy::Database.url(dbconf)
 
-      run "cd '#{latest_release}' && #{drush_bin} site-install --yes --db-url='#{db_url}'"\
+      run "cd '#{latest_release}' && #{remote_drush} site-install --yes --db-url='#{db_url}'"\
           " --account-mail='#{admin_email}' --account-name='#{admin_user}' --account-pass='#{admin_password}'"\
           " --site-name='#{site_name}' --site-mail='#{site_email}' "\
           "#{dbconf[:admin_username] ? "--db-su='#{dbconf[:admin_username]}'" : ''} #{dbconf[:admin_password] ? "--db-su-pw='#{dbconf[:admin_password]}'" : ''}"\
@@ -87,4 +88,9 @@ namespace :drupal do
     end
   end
 
+  task :load_targets do
+    if exists? :target
+      target.split(/ *, */).each {|t| drush_cap.load_target t }
+    end
+  end
 end

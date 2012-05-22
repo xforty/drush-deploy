@@ -11,15 +11,9 @@ module DrushDeploy
 
     DEFAULT_ROLES = [:web]
 
-    def initialize
-      @cap_config = ::Capistrano::Configuration.instance(:must_exist)
-
-      if @cap_config.exists? :drush
-        @drush_config = DrushDeploy::Configuration.new @cap_config[:drush]
-      else
-        @drush_config = DrushDeploy::Configuration.new
-        @cap_config.set :drush, @drush_config.drush
-      end
+    def initialize(config)
+      @cap_config = config
+      @drush_config = DrushDeploy::Configuration.new @cap_config[:drush]
       @cap_config.logger.info "Using drush at \"#{@drush_config.drush}\""
     end
 
