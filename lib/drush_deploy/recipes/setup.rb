@@ -41,7 +41,3 @@ set :configured, false
 
 set :drush_cap, DrushDeploy::Capistrano.new
 set :drupal_db, DrushDeploy::Database.new(self)
-
-if exists? :target
-  target.split(/ *, */).each {|t| drush_cap.load_target t }
-end

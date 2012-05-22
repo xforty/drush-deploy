@@ -1,5 +1,6 @@
 require 'drush_deploy/database'
 
+on :start, "drupal:load_targets"
 before "deploy", "drupal:setup_build"
 before "deploy:symlink", "drupal:symlink"
 before "deploy:setup", "drupal:setup"
@@ -87,4 +88,9 @@ namespace :drupal do
     end
   end
 
+  task :load_targets do
+    if exists? :target
+      target.split(/ *, */).each {|t| drush_cap.load_target t }
+    end
+  end
 end
