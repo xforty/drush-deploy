@@ -47,7 +47,7 @@ module DrushDeploy
       unless site
         site = @aliases[sitename]        
         if site
-          @normalized_aliases[sitename] = site = normalize_alias site
+          @normalized_aliases[sitename] = site = normalize_alias(site)
         end
       end
       site
