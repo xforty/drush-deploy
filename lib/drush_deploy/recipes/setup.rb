@@ -26,7 +26,8 @@ set :source, ENV['SOURCE'] if ENV['SOURCE']
 set :application, 'Drupal'
 set :deploy_via, :copy
 set :use_sudo, false
-set :drush_bin, "drush"
+set :drush, "drush"
+set :remote_drush, "drush"
 
 set(:databases_path) { [ "#{deploy_to}/database.php", "#{deploy_to}/database.yml",
                        '~/.drush/database.php', '~/.drush/database.yml', 

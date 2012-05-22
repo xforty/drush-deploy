@@ -13,13 +13,7 @@ module DrushDeploy
 
     def initialize
       @cap_config = ::Capistrano::Configuration.instance(:must_exist)
-
-      if @cap_config.exists? :drush
-        @drush_config = DrushDeploy::Configuration.new @cap_config[:drush]
-      else
-        @drush_config = DrushDeploy::Configuration.new
-        @cap_config.set :drush, @drush_config.drush
-      end
+      @drush_config = DrushDeploy::Configuration.new @cap_config[:drush]
       @cap_config.logger.info "Using drush at \"#{@drush_config.drush}\""
     end
 
