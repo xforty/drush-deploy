@@ -1,4 +1,5 @@
 require 'drush_deploy/capistrano'
+require 'drush_deploy/database'
 
 true_values = /^(1|y(es)?|t(rue)?)$/i
 
@@ -39,5 +40,5 @@ set :database_ports, { :pgsql => 5432, :mysql => 3306 }
 set :configured, false
 
 
-set :drush_cap, DrushDeploy::Capistrano.new
-set :drupal_db, DrushDeploy::Database.new(self)
+set(:drush_cap) { DrushDeploy::Capistrano.new(self)}
+set(:drupal_db) { DrushDeploy::Database.new(self)}
