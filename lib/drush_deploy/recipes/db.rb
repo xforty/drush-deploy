@@ -58,7 +58,7 @@ namespace :db do
       configure unless configured
       settings = databases.inject({}) do |h,(k,site)|
         h[k] = site.inject({}) do |h,(k,db)|
-          h[k] = db.keep_if { |k,v| DrushDeploy::Database::STANDARD_KEYS.include? k }
+          h[k] = db.dup.keep_if { |k,v| DrushDeploy::Database::STANDARD_KEYS.include? k }
           h
         end
         h
