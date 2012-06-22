@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'drush-deploy'
-  s.version     = '1.0.8'
+  s.version     = '1.0.9'
   s.summary     = "Deployment strategy for Drupal using Drush"
   s.description = "Utilizes capistrano to allow for doing intellegent deployments of drupal projects."
   s.authors     = ["Matt Edlefsen"]
@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
     "README.md"
   ]
 
-  s.add_runtime_dependency(%q<capistrano>, [">=2.0"])
+  s.add_runtime_dependency(%q<capistrano>, [">=2.12"])
   s.add_runtime_dependency(%q<railsless-deploy>, [">=1.0.2"])
   s.add_runtime_dependency(%q<php_serialize>, [">=1.2"])
 end
