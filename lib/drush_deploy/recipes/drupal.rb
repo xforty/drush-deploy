@@ -5,7 +5,11 @@ before "deploy", "drupal:setup_build"
 before "deploy:symlink", "drupal:symlink"
 before "deploy:setup", "drupal:setup"
 after "drupal:setup", "drupal:check_permissions"
-after "deploy", "drupal:clearcache"
+if version_database
+  after "db:version:create", "drupal:clearcache"
+else
+  after "deploy:update_code", "drupal:clearcache"
+end
 before "drupal:install_profile", "db:drupal:configure"
 
 namespace :drupal do
