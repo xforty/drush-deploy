@@ -13,7 +13,7 @@ before "db:version:rollback", "db:drupal:configure"
 before "db:version:cleanup", "db:drupal:configure"
 
 if update_modules
-  after "deploy:update_code", "db:drupal:update"
+  after "drupal:clearcache", "db:drupal:update"
 end
 after "deploy:cleanup", "db:version:cleanup"
 
