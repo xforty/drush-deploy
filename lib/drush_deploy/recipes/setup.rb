@@ -42,3 +42,5 @@ set :configured, false
 
 set(:drush_cap) { DrushDeploy::Capistrano.new(self)}
 set(:drupal_db) { DrushDeploy::Database.new(self)}
+set :versioned_databases, [:default]
+set(:targets) { drush_cap.targets }

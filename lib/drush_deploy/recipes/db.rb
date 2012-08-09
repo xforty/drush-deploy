@@ -71,13 +71,15 @@ namespace :db do
     desc "Create a versioned backup of the database"
     task :create, :roles => :web do
       if releases.size > 1
-        current = drupal_db.config[:database]
-        backup = "#{current}_#{releases[-2]}"
-        unless drupal_db.db_empty? or drupal_db.db_exists? backup
-          on_rollback do
-            drupal_db.drop_database backup
+        versioned_databases.each do |conf_name|
+          current = drupal_db.config(conf_name)[:database]
+          backup = "#{current}_#{releases[-2]}"
+          unless drupal_db.db_empty?(current,conf_name) or drupal_db.db_exists? backup,conf_name
+            on_rollback do
+              drupal_db.drop_database backup, conf_name
+            end
+            drupal_db.copy_database(current,backup,conf_name)
           end
-          drupal_db.copy_database(current,backup)
         end
       end
     end
@@ -87,14 +89,16 @@ namespace :db do
       unless releases.size > 1
         throw DrushDeploy::Error.new "No previous versions to rollback to"
       end
-      current = drupal_db.config[:database]
-      release = releases.last
-      source = "#{current}_#{releases[-2]}"
-      backup = "#{current}_backup"
-      if drupal_db.db_exists? source
-        drupal_db.rename_database(current,backup)
-        drupal_db.rename_database(source,current)
-        drupal_db.drop_database(backup)
+      versioned_databases.each do |conf_name|
+        current = drupal_db.config(conf_name)[:database]
+        release = releases.last
+        source = "#{current}_#{releases[-2]}"
+        backup = "#{current}_backup"
+        if drupal_db.db_exists? source,conf_name
+          drupal_db.rename_database(current,backup,conf_name)
+          drupal_db.rename_database(source,current,conf_name)
+          drupal_db.drop_database(backup,conf_name)
+        end
       end
     end
 
@@ -102,8 +106,10 @@ namespace :db do
     task :cleanup, :roles => :web do
       # Subtract one because the latest release won't be counted
       count = fetch(:keep_releases, 5).to_i - 1
-      drupal_db.db_versions.drop(count).each do |db|
-        drupal_db.drop_database(db)
+      versioned_databases.each do |conf_name|
+        drupal_db.db_versions(nil,conf_name).drop(count).each do |db|
+          drupal_db.drop_database(db,conf_name)
+        end
       end
     end
   end

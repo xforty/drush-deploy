@@ -158,12 +158,12 @@ module DrushDeploy
 
     def config(*args)
       options = (args.size>0 && args.last.is_a?(Hash)) ? args.pop : {}
-      site_name = args[0] || :default
-      db_name = args[1] || :default
-      if databases[site_name] && databases[site_name][db_name]
-        conf = databases[site_name][db_name].dup
+      db_name = args[0] || :default
+      instance_name = args[1] || :default
+      if databases[db_name] && databases[db_name][instance_name]
+        conf = databases[db_name][instance_name].dup
       else
-        throw ConfigNotFound.new site_name,db_name
+        throw ConfigNotFound.new db_name,instance_name
       end
       if options[:admin] && conf[:admin_username]
         conf[:username] = conf[:admin_username]
@@ -184,8 +184,8 @@ module DrushDeploy
       end
     end
 
-    def db_empty?(db = nil)
-      conf = config
+    def db_empty?(db = nil, conf_name = nil)
+      conf = config(conf_name)
       conf[:database] = db if db
       db = conf[:database]
       if @db_status[db].nil?
@@ -200,8 +200,8 @@ module DrushDeploy
       @db_status[db]
     end
 
-    def db_versions
-      conf = config(:admin => true)
+    def db_versions(db = nil, conf_name = nil)
+      conf = config(conf_name,:admin => true)
       throw FieldNotFound.new 'database' unless conf[:database]
       logger.info "Getting list of databases versions"
       sql = %q{SELECT SCHEMA_NAME FROM information_schema.SCHEMATA
@@ -209,8 +209,8 @@ module DrushDeploy
       (remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1..-1] || []).sort.reverse
     end
 
-    def db_exists?(db = nil)
-      conf = config(:admin => true)
+    def db_exists?(db = nil, conf_name = nil)
+      conf = config(conf_name,:admin => true)
       conf[:database] = db if db
       throw FieldNotFound.new 'database' unless conf[:database]
       logger.info "Checking existence of #{conf[:database]}"
@@ -219,8 +219,8 @@ module DrushDeploy
       remote_sql(sql, :config => conf, :capture => true).split(/\n/)[1].to_i != 0
     end
 
-    def db_tables(db = nil)
-      conf = config(:admin => true)
+    def db_tables(db = nil, conf_name = nil)
+      conf = config(conf_name,:admin => true)
       conf[:database] = db if db
       db = conf[:database]
       throw FieldNotFound.new 'database' unless conf[:database]
@@ -235,10 +235,10 @@ module DrushDeploy
       tables
     end
 
-    def copy_database(from,to)
+    def copy_database(from,to,conf_name = nil)
       logger.info "Copying database #{from} to #{to}"
-      tables = db_tables
-      conf = config(:database => from, :admin => true)
+      tables = db_tables(nil,conf_name)
+      conf = config(conf_name,:database => from, :admin => true)
 
       remote_sql("CREATE DATABASE #{to};", :config => conf)
       sql = ''
@@ -252,13 +252,13 @@ module DrushDeploy
       @db_status.delete(to)
     end
 
-    def rename_database(from,to)
+    def rename_database(from,to,conf_name = nil)
       logger.info "Renaming database #{from} to #{to}"
-      conf = config(:database => from, :admin => true)
+      conf = config(conf_name,:database => from, :admin => true)
       sql = ''
       if conf[:driver] == :mysql
         sql += "CREATE DATABASE `#{to}`;"
-        db_tables(from).each do |table|
+        db_tables(from,conf_name).each do |table|
           sql += "RENAME TABLE `#{from}`.`#{table}` TO `#{to}`.`#{table}`;"
         end
         sql += "DROP DATABASE `#{from}`;"
@@ -269,9 +269,9 @@ module DrushDeploy
       @db_status.delete(to)
     end
 
-    def drop_database(db)
+    def drop_database(db,conf_name = nil)
       logger.info "Dropping database #{db}"
-      conf = config(:database => db, :admin => true)
+      conf = config(conf_name,:database => db, :admin => true)
       remote_sql("DROP DATABASE #{db};", :config => conf)
       @db_status[db] = false
     end
