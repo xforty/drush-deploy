@@ -202,6 +202,7 @@ module DrushDeploy
 
     def db_versions(db = nil, conf_name = nil)
       conf = config(conf_name,:admin => true)
+      conf[:database] = db if db
       throw FieldNotFound.new 'database' unless conf[:database]
       logger.info "Getting list of databases versions"
       sql = %q{SELECT SCHEMA_NAME FROM information_schema.SCHEMATA
