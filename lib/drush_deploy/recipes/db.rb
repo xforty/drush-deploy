@@ -78,6 +78,7 @@ namespace :db do
             on_rollback do
               drupal_db.drop_database backup, conf_name
             end
+            logger.info "Creating backup version of #{conf_name} database as #{backup}"
             drupal_db.copy_database(current,backup,conf_name)
           end
         end
@@ -95,6 +96,7 @@ namespace :db do
         source = "#{current}_#{releases[-2]}"
         backup = "#{current}_backup"
         if drupal_db.db_exists? source,conf_name
+          logger.info "Rolling back #{conf_name} database to #{source}"
           drupal_db.rename_database(current,backup,conf_name)
           drupal_db.rename_database(source,current,conf_name)
           drupal_db.drop_database(backup,conf_name)
@@ -107,6 +109,7 @@ namespace :db do
       # Subtract one because the latest release won't be counted
       count = fetch(:keep_releases, 5).to_i - 1
       versioned_databases.each do |conf_name|
+        logger.info "Cleaning up #{conf_name} database"
         drupal_db.db_versions(nil,conf_name).drop(count).each do |db|
           drupal_db.drop_database(db,conf_name)
         end
