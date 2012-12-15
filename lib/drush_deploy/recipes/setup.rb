@@ -22,6 +22,8 @@ set :make_args, ENV['MAKE_ARGS'] if ENV['MAKE_ARGS']
 set :update_modules, (ENV['UPDATE_MODULES'] =~ true_values) if ENV['UPDATE_MODULES']
 
 set :target, ENV['TARGET'] if ENV['TARGET']
+set :target, cmdline_target if exists? :cmdline_target
+
 set :source, ENV['SOURCE'] if ENV['SOURCE']
 
 set :application, 'Drupal'
