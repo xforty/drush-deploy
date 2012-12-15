@@ -2,15 +2,12 @@
 
 require 'capistrano/cli'
 require 'drush_deploy/paths'
-module Capistrano
-  class CLI
-    alias_method :execute_without_drush, :execute!
-    def execute_with_drush
-      options[:recipes] << DrushDeploy::Paths.recipe('bootstrap')
-      options[:actions] << 'deploy' if options[:actions].empty?
-      execute_without_drush
-    end
-    alias_method :execute!, :execute_with_drush
-  end
+args = ARGV
+args = ['--file', DrushDeploy::Paths.recipe('bootstrap')] + args
+
+cli = Capistrano::CLI.parse(args)
+if cli.options[:actions].empty?
+  args << 'deploy'
+  cli = Capistrano::CLI.parse(args)
 end
-Capistrano::CLI.execute
+cli.execute!
