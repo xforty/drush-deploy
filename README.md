@@ -13,7 +13,6 @@ Provides capistrano deployment strategy for Drupal by using Drush.
 
 * Linux/Unix
 * Drush
-* File system acls enabled (`setfacl`)
 
 ### Basic Usage
 
