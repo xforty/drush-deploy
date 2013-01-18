@@ -1,24 +1,20 @@
-version 1.0.12
+drush-deploy
+============
+version 1.0.12 - [changelog](https://github.com/xforty/drush-deploy/wiki/CHANGELOG)
 
-## DESCRIPTION
+Provides capistrano deployment strategy for Drupal by using Drush.
 
-Provides capistrano deployment strategy for Drupal.
+### Local Requirements
 
-For documentation please checkout the [wiki](https://github.com/xforty/drush-deploy/wiki)
-
-## REQUIREMENTS
-
-* Capistrano 
-* railsless-deloy
-* php\_serialize
+* Ruby
 * Drush
 
-On remote servers you must have
+### Remote Requirements
 
 * Drush
 * File system acls enabled (`setfacl`)
 
-## USAGE
+### Basic Usage
 
         # Initial Setup
         gem install drush-deploy
@@ -29,3 +25,17 @@ On remote servers you must have
         # To deploy
         cd <Drupal root>
         drush-deploy TARGET=<drush alias>
+
+### Resources
+
+* [Project Wiki](https://github.com/xforty/drush-deploy/wiki) - HowTos,
+  FAQs, and advanced usage
+* [Project Issues](https://github.com/xforty/drush-deploy/issues) - submit
+  bugs, support questions, and feature requests
+* [Development](https://github.com/xforty/drush-deploy/wiki/Development)
+* [Drush Documentation](http://drush.ws)
+* [Capistrano Documentation](https://github.com/capistrano/capistrano/wiki)
+* [Railsless-Deploy Documentation](https://github.com/leehambley/railsless-deploy/)
+
+---------------------------------------------------------------------
+Maintained by [xforty technologies](http://www.xforty.com)
