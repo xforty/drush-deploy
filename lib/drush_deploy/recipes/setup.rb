@@ -1,5 +1,6 @@
 require 'drush_deploy/capistrano'
 require 'drush_deploy/database'
+require 'drush_deploy/drupal_copy'
 
 true_values = /^(1|y(es)?|t(rue)?)$/i
 
@@ -28,6 +29,7 @@ set :source, ENV['SOURCE'] if ENV['SOURCE']
 
 set :application, 'Drupal'
 set :deploy_via, :copy
+set :strategy, DrushDeploy::Strategy::DrupalCopy.new(self)
 set :use_sudo, false
 set :drush, "drush"
 set :remote_drush, "drush"
