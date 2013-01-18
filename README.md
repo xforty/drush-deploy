@@ -11,6 +11,7 @@ Provides capistrano deployment strategy for Drupal by using Drush.
 
 ### Remote Requirements
 
+* Linux/Unix
 * Drush
 * File system acls enabled (`setfacl`)
 
