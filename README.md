@@ -32,7 +32,8 @@ Provides capistrano deployment strategy for Drupal by using Drush.
   FAQs, and advanced usage
 * [Project Issues](https://github.com/xforty/drush-deploy/issues) - submit
   bugs, support questions, and feature requests
-* [Development](https://github.com/xforty/drush-deploy/wiki/Development)
+* [Development](https://github.com/xforty/drush-deploy/wiki/Development) -
+  steps to develop locally and other development information
 * [Drush Documentation](http://drush.ws)
 * [Capistrano Documentation](https://github.com/capistrano/capistrano/wiki)
 * [Railsless-Deploy Documentation](https://github.com/leehambley/railsless-deploy/)
