@@ -1,7 +1,6 @@
 require 'drush_deploy/database'
 
 on :start, "drupal:load_targets"
-before "deploy", "drupal:setup_build"
 after "deploy:update_code", "drupal:symlink"
 before "deploy:setup", "drupal:setup"
 after "drupal:setup", "drupal:check_permissions"
@@ -59,17 +58,6 @@ namespace :drupal do
           " --site-name='#{site_name}' --site-mail='#{site_email}' "\
           "#{dbconf[:admin_username] ? "--db-su='#{dbconf[:admin_username]}'" : ''} #{dbconf[:admin_password] ? "--db-su-pw='#{dbconf[:admin_password]}'" : ''}"\
           "#{machine_name} #{arguments}", :once => true
-  end
-
-  task :setup_build, :roles => :web do
-    build_cmd = "#{drush} make #{make_args} '#{makefile}' ."
-
-    if make == :auto
-      build_cmd = "[ -f index.php ] || { [ -f '#{makefile}' ] && #{build_cmd}; }"
-    end
-    if make
-      set :build_script, build_cmd
-    end
   end
 
   desc "Check and fix if any permissions are set incorrectly."

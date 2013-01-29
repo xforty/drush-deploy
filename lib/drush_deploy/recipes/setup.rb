@@ -9,6 +9,9 @@ set :repository, "."
 set :make, :auto
 set :makefile, 'distro.make'
 set :make_args, ''
+
+# Changing to true in 2.0
+set :make_clean, false
 set :databases, {}
 set :update_modules, true
 set :version_database, true
