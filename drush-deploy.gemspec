@@ -3,7 +3,7 @@ require 'drush_deploy/version'
 
 Gem::Specification.new do |s|
   s.name        = 'drush-deploy'
-  s.version     = DrushDeploy::generate_version(logger: Logger.new(STDERR))
+  s.version     = DrushDeploy::generate_version(logger: Logger.new(STDERR), use_build: ENV['USE_BUILD'])
   s.summary     = "Deployment strategy for Drupal using Drush"
   s.description = "Utilizes capistrano to allow for doing intellegent deployments of drupal projects."
   s.authors     = ["Matt Edlefsen"]

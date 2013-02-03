@@ -7,7 +7,6 @@ module DrushDeploy
     logger = opts[:logger] || Logger.new(nil)
     use_build = opts.key?(:use_build) ? opts[:use_build] : false
 
-    return VERSION if defined? VERSION
     path = File.expand_path('../../..',__FILE__)
     unless File.exists?(File.expand_path('.git',path))
       logger.error "Couldn't find git repository, falling back to base version"
@@ -42,7 +41,7 @@ module DrushDeploy
     end
 
     if git.diff('HEAD', path).size > 0
-      logger.info "Working directory is dirty, building 'build' version"
+      logger.info "Working directory is dirty, building dev version"
       needs_build = true
     end
 
