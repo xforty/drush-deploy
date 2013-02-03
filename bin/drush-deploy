@@ -5,8 +5,11 @@ require 'drush_deploy/paths'
 
 aliases,args = ARGV.partition {|a| a =~ /^@./}
 
-args = ['--set-before', 'cmdline_target='+aliases.map {|a| a[1..-1] }.join(','),
-        '--file', DrushDeploy::Paths.recipe('bootstrap')] + args
+unless aliases.empty?
+  args = ['--set-before', 'cmdline_target='+aliases.map {|a| a[1..-1] }.join(',')] + args
+end
+
+args = [ '--file', DrushDeploy::Paths.recipe('bootstrap')] + args
 
 cli = Capistrano::CLI.parse(args)
 if cli.options[:actions].empty?
