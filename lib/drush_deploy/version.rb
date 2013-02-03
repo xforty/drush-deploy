@@ -41,7 +41,7 @@ module DrushDeploy
     end
 
     if git.diff('HEAD', path).size > 0
-      logger.info "Working directory is dirty, building dev version"
+      logger.info "Working directory has changes, building dev version"
       needs_build = true
     end
 
