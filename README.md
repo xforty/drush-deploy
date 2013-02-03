@@ -1,5 +1,3 @@
-version 1.0.12
-
 ## DESCRIPTION
 
 Provides capistrano deployment strategy for Drupal.

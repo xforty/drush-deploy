@@ -1,6 +1,9 @@
+$LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
+require 'drush_deploy/version'
+
 Gem::Specification.new do |s|
   s.name        = 'drush-deploy'
-  s.version     = '1.0.12'
+  s.version     = DrushDeploy::generate_version(Logger.new(STDERR))
   s.summary     = "Deployment strategy for Drupal using Drush"
   s.description = "Utilizes capistrano to allow for doing intellegent deployments of drupal projects."
   s.authors     = ["Matt Edlefsen"]
