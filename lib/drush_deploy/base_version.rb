@@ -1,3 +1,3 @@
 module DrushDeploy
-  BASE_VERSION = '1.1.0'
+  BASE_VERSION = '1.0.12'
 end

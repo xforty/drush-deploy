@@ -4,6 +4,7 @@ require File.expand_path("../base_version.rb",__FILE__)
 
 module DrushDeploy
   def self.generate_version(logger = Logger.new(nil))
+    return VERSION if defined? VERSION
     path = File.expand_path('../../..',__FILE__)
     unless File.exists?(File.expand_path('.git',path))
       logger.error "Couldn't find git repository, falling back to base version"
@@ -20,18 +21,18 @@ module DrushDeploy
     pre_prefix = false
     needs_build = false
     base = 'develop'
+    increment = false
     br = git.current_branch
-    if br == 'develop'
-      needs_buid = true
-    elsif br =~ /^feature\//
-      pre_prefix = 'dev'
+    if br == 'develop' || br =~ /^feature\//
+      increment = true
+      needs_build = true
     elsif br =~ /^release\//
       pre_prefix = 'pre'
     elsif br =~ /^hotfix\//
       pre_prefix = 'pre'
       base = 'master'
     elsif br != "master"
-      logger.error "Couldn't parse branch '#{br}'! Just using DrushDeploy::VERSION"
+      logger.error "Couldn't parse branch '#{br}'! Just using DrushDeploy::BASE_VERSION"
     end
 
     if git.diff('HEAD', path).size > 0
@@ -40,6 +41,9 @@ module DrushDeploy
     end
 
     version = BASE_VERSION
+    if increment
+      version = version.sub(/[^\.]*$/) {|p| p.to_i + 1}
+    end
 
     if pre_prefix
       commits = git.lib.log_commits(:between =>[base,'HEAD']).size
