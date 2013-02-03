@@ -1,15 +1,21 @@
 require 'logger'
-module DrushDeploy
-  VERSION = '1.1.0'
 
-  def self.gem_version(logger = Logger.new(nil))
+require File.expand_path("../base_version.rb",__FILE__)
+
+module DrushDeploy
+  def self.generate_version(logger = Logger.new(nil))
+    path = File.expand_path('../../..',__FILE__)
+    unless File.exists?(File.expand_path('.git',path))
+      logger.error "Couldn't find git repository, falling back to base version"
+      return BASE_VERSION
+    end
+
     begin
       require 'git'
     rescue LoadError => e
-      e.message.insert 0, "Generating DrushDeploy.gem_version requires 'git' gem.\n"
+      e.message.insert 0, "Generating DrushDeploy.generate_version requires 'git' gem.\n"
       raise e
     end
-    path = File.expand_path('../../..',__FILE__)
     git = Git.open path
     pre_prefix = false
     needs_build = false
@@ -33,11 +39,12 @@ module DrushDeploy
       needs_build = true
     end
 
-    version = VERSION
+    version = BASE_VERSION
     version += pre(git, pre_prefix, base) if pre_prefix
     version += build if needs_build
     version
   end
+
   private
 
   def self.build
@@ -51,5 +58,13 @@ module DrushDeploy
     else
       ""
     end
+  end
+
+  public
+
+  if Gem.loaded_specs["drush-deploy"]
+    VERSION = Gem.loaded_specs["drush-deploy"].version
+  else
+    VERSION = generate_version
   end
 end
