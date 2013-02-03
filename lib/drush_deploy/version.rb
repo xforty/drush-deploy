@@ -40,27 +40,17 @@ module DrushDeploy
     end
 
     version = BASE_VERSION
-    version += pre(git, pre_prefix, base) if pre_prefix
-    version += build if needs_build
+
+    if pre_prefix
+      commits = git.lib.log_commits(:between =>[base,'HEAD']).size
+      commits += 1 if needs_build
+
+      version += ".#{pre_prefix}.#{commits}" if commits > 0
+    end
+    version += ".build."+Time.now.utc.strftime("%Y%m%d%H%M%S") if needs_build
+
     version
   end
-
-  private
-
-  def self.build
-    ".build."+Time.now.utc.strftime("%Y%m%d%H%M%S")
-  end
-
-  def self.pre(git,prefix,base)
-    commits = git.lib.log_commits(:between =>[base,'HEAD']).size
-    if commits > 0
-      ".#{prefix}.#{commits}"
-    else
-      ""
-    end
-  end
-
-  public
 
   if Gem.loaded_specs["drush-deploy"]
     VERSION = Gem.loaded_specs["drush-deploy"].version
