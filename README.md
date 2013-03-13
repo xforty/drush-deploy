@@ -10,7 +10,6 @@ For documentation please checkout the [wiki](https://github.com/xforty/drush-dep
 
 * Capistrano 
 * railsless-deloy
-* php\_serialize
 * Drush
 
 On remote servers you must have
