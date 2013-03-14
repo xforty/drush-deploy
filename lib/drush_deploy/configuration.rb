@@ -1,17 +1,12 @@
 require 'drush_deploy/error'
 
 require 'shellwords'
-require 'php_serialize'
 require 'net/ssh/config'
 
 module DrushDeploy
   class Configuration
     class Error < DrushDeploy::Error; end
     attr_reader :aliases, :drush
-
-    def self.unserialize_php(php)
-      normalize_value PHP.unserialize(php)
-    end
 
     def self.normalize_value(val) 
       if val.is_a? Hash
@@ -32,7 +27,7 @@ module DrushDeploy
     end
 
     def load_configuration
-      @aliases = PHP.unserialize(`#{@drush} eval 'print serialize(_drush_sitealias_all_list());'`).inject({}) do |h,(k,v)|
+      @aliases = JSON.parse(`#{@drush} eval 'print json_encode(_drush_sitealias_all_list());'`).inject({}) do |h,(k,v)|
         if k != '@none'
           h[k.sub(/^@/,'')] = v
         end
