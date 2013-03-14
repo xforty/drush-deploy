@@ -87,7 +87,7 @@ module DrushDeploy
       
       settings = {}
       unless resp.empty?
-        resp = JSON.parse(resp)
+        resp = DrushDeploy::Configuration.unserialize_php(resp)
         if resp != []
           settings = resp
         end

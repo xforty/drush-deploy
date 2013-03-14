@@ -8,6 +8,10 @@ module DrushDeploy
     class Error < DrushDeploy::Error; end
     attr_reader :aliases, :drush
 
+    def self.unserialize_php(php)
+      normalize_value JSON.parse(php)
+    end
+
     def self.normalize_value(val) 
       if val.is_a? Hash
         val.inject({}) do |result,(k,v)|
