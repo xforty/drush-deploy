@@ -20,6 +20,7 @@ end
 set :makefile, ENV['MAKEFILE'] if ENV['MAKEFILE']
 set :make_args, ENV['MAKE_ARGS'] if ENV['MAKE_ARGS']
 set :update_modules, (ENV['UPDATE_MODULES'] =~ true_values) if ENV['UPDATE_MODULES']
+set :version_database, (ENV['VERSION_DATABASE'] =~ true_values) if ENV['VERSION_DATABASE']
 
 set :target, ENV['TARGET'] if ENV['TARGET']
 set :source, ENV['SOURCE'] if ENV['SOURCE']
